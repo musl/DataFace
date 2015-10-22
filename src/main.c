@@ -236,7 +236,7 @@ static void load_cb(Window *window) {
     // Theme
     //
     s_color_a = GColorWhite;
-    s_color_b = GColorGreen;
+    s_color_b = GColorScreaminGreen;
     s_color_c = GColorIslamicGreen;
     s_color_error = GColorRed;
     s_color_warn = GColorOrange;
@@ -286,7 +286,7 @@ static void load_cb(Window *window) {
     text_layer_set_text_alignment(s_batt_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_batt_layer));
     
-    s_blth_layer = text_layer_create(GRect(74, 132, 70, 28));
+    s_blth_layer = text_layer_create(GRect(74, 132, 72, 28));
     text_layer_set_background_color(s_blth_layer, GColorClear);
     text_layer_set_text_color(s_blth_layer, s_color_c);
     text_layer_set_font(s_blth_layer, s_font_a);
