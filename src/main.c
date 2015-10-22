@@ -234,7 +234,7 @@ static void inbox_dropped_cb(AppMessageResult reason, void *context) {
  */
 static void load_cb(Window *window) {
 
-    s_weather_fetching = "fetching";
+    s_weather_fetching = "  ....  ";
     
     // Theme
     //
