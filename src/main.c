@@ -138,6 +138,7 @@ static void update_wthr() {
     }
     
     snprintf(buff, sizeof(buff), "%4s%3d%1c", s_cond, (int)temp, s_temp_unit);
+    text_layer_set_text_color(s_wthr_layer, s_color_b);
     text_layer_set_text(s_wthr_layer, buff);
     
 }
@@ -233,6 +234,8 @@ static void inbox_dropped_cb(AppMessageResult reason, void *context) {
  */
 static void load_cb(Window *window) {
 
+    s_weather_fetching = "fetching";
+    
     // Theme
     //
     s_color_a = GColorWhite;
@@ -240,6 +243,7 @@ static void load_cb(Window *window) {
     s_color_c = GColorIslamicGreen;
     s_color_error = GColorRed;
     s_color_warn = GColorOrange;
+    s_color_info = GColorPictonBlue;
     s_font_a = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_SB_28));
     s_font_b = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_SB_38));
 
@@ -274,9 +278,10 @@ static void load_cb(Window *window) {
     
     s_wthr_layer = text_layer_create(GRect(0, 104, 144, 28));
     text_layer_set_background_color(s_wthr_layer, GColorClear);
-    text_layer_set_text_color(s_wthr_layer, s_color_b);
+    text_layer_set_text_color(s_wthr_layer, s_color_info);
     text_layer_set_font(s_wthr_layer, s_font_a);
     text_layer_set_text_alignment(s_wthr_layer, GTextAlignmentCenter);
+    text_layer_set_text(s_wthr_layer, s_weather_fetching);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_wthr_layer));
     
     s_batt_layer = text_layer_create(GRect(0, 132, 72, 28));

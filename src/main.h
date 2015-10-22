@@ -70,6 +70,10 @@ static GColor s_color_b;
 static GColor s_color_c;
 static GColor s_color_error;
 static GColor s_color_warn;
+static GColor s_color_info;
+
+// Messages
+static char *s_weather_fetching;
 
 /*
  * If you care enough to organize everything for an app with such a defined
