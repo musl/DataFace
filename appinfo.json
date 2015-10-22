@@ -13,12 +13,12 @@
     "resources": {
         "media": [
             {
-                "file": "fonts/SourceCodePro-Semibold-2.ttf",
+                "file": "fonts/FONT_SCP_SB_38.ttf",
                 "name": "FONT_SCP_SB_38",
                 "type": "font"
             },
             {
-                "file": "fonts/SourceCodePro-Semibold-1.ttf",
+                "file": "fonts/FONT_SCP_SB_28.ttf",
                 "name": "FONT_SCP_SB_28",
                 "type": "font"
             }

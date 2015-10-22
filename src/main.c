@@ -64,10 +64,10 @@ static void update_tech() {
     
     if(s_bluetooth_state) {
         bt = "bt";
-        text_layer_set_text_color(s_blth_layer, GColorDarkGray);
+        text_layer_set_text_color(s_blth_layer, s_color_c);
     } else {
         bt = "nc";
-        text_layer_set_text_color(s_blth_layer, GColorRed);
+        text_layer_set_text_color(s_blth_layer, s_color_error);
     }
     
     if(s_battery_state.is_charging) {
@@ -80,11 +80,11 @@ static void update_tech() {
     
     p = s_battery_state.charge_percent;
     if(p > 20) {
-        text_layer_set_text_color(s_batt_layer, GColorDarkGray);
+        text_layer_set_text_color(s_batt_layer, s_color_c);
     } else if(p > 10) {
-        text_layer_set_text_color(s_batt_layer, GColorOrange);
+        text_layer_set_text_color(s_batt_layer, s_color_warn);
     } else {
-        text_layer_set_text_color(s_batt_layer, GColorRed);
+        text_layer_set_text_color(s_batt_layer, s_color_error);
     }
     
     snprintf(batt_buff, sizeof(batt_buff), "%3d%c", p, bs);
@@ -121,10 +121,39 @@ static void update_time() {
 static void update_wthr() {
     
     static char buff[9];
-    static const char *unit = "C";
+    static float temp;
     
-    snprintf(buff, sizeof(buff), "%4s %2d%1s", s_cond, s_temp, unit);
+    switch(s_temp_unit) {
+        case 'C':
+            temp = s_temp - 273.15f;
+            break;
+        case 'F':
+            temp = (s_temp - 273.15f) * 1.8f + 32.0f;
+            break;
+        case 'K':
+            temp = s_temp;
+            break;
+        default:
+            return;
+    }
+    
+    snprintf(buff, sizeof(buff), "%4s%3d%1c", s_cond, (int)temp, s_temp_unit);
     text_layer_set_text(s_wthr_layer, buff);
+    
+}
+
+
+/*
+ *
+ */
+static void update_cldr() {
+    
+    time_t gmt = time(NULL);
+    struct tm *local_time = localtime(&gmt);    
+    static char buff[7];
+    
+    strftime(buff, sizeof(buff), "W%U%a", local_time);
+    text_layer_set_text(s_cldr_layer, buff);
     
 }
 
@@ -169,8 +198,7 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
     while(t != NULL) {
         switch(t->key) {
             case KEY_TEMPERATURE:
-                // TODO - temperature unit config.
-                s_temp = ((int)t->value->int32) - 273; // Maybe I could store this internally as a float?
+                s_temp = ((int)t->value->int32);
                 needs_update = true;
                 break;
             case KEY_CONDITIONS:
@@ -204,54 +232,64 @@ static void inbox_dropped_cb(AppMessageResult reason, void *context) {
  * Handle window loading.
  */
 static void load_cb(Window *window) {
-    
-    s_scp_a = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_SB_28));
-    s_scp_b = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_SB_38));
 
+    // Theme
+    //
+    s_color_a = GColorWhite;
+    s_color_b = GColorGreen;
+    s_color_c = GColorIslamicGreen;
+    s_color_error = GColorRed;
+    s_color_warn = GColorOrange;
+    s_font_a = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_SB_28));
+    s_font_b = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_SB_38));
+
+    // Window Background
+    //
     s_bg_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
     bitmap_layer_set_background_color(s_bg_layer, GColorBlack);
     layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_bg_layer));
     
+    // Layers
+    //
     s_date_layer = text_layer_create(GRect(0, 0, 144, 28));
     text_layer_set_background_color(s_date_layer, GColorClear);
-    text_layer_set_text_color(s_date_layer, GColorLightGray);
-    text_layer_set_font(s_date_layer, s_scp_a);
+    text_layer_set_text_color(s_date_layer, s_color_c);
+    text_layer_set_font(s_date_layer, s_font_a);
     text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
     
-    s_time_layer = text_layer_create(GRect(0, 26, 144, 38));
+    s_cldr_layer = text_layer_create(GRect(0, 26, 144, 38));
+    text_layer_set_background_color(s_cldr_layer, GColorClear);
+    text_layer_set_text_color(s_cldr_layer, s_color_b);
+    text_layer_set_font(s_cldr_layer, s_font_b);
+    text_layer_set_text_alignment(s_cldr_layer, GTextAlignmentCenter);
+    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_cldr_layer));
+    
+    s_time_layer = text_layer_create(GRect(0, 62, 144, 38));
     text_layer_set_background_color(s_time_layer, GColorClear);
-    text_layer_set_text_color(s_time_layer, GColorWhite);
-    text_layer_set_font(s_time_layer, s_scp_b);
+    text_layer_set_text_color(s_time_layer, s_color_a);
+    text_layer_set_font(s_time_layer, s_font_b);
     text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
     
-    s_arty_layer = text_layer_create(GRect(0, 56, 144, 56));
-    text_layer_set_background_color(s_arty_layer, GColorClear);
-    text_layer_set_text_color(s_arty_layer, GColorRed);
-    text_layer_set_font(s_arty_layer, s_scp_a);
-    text_layer_set_text_alignment(s_arty_layer, GTextAlignmentCenter);
-    text_layer_set_text(s_arty_layer, "~~~~~~~~\n~~~~~~~~");
-    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_arty_layer));
-    
     s_wthr_layer = text_layer_create(GRect(0, 104, 144, 28));
     text_layer_set_background_color(s_wthr_layer, GColorClear);
-    text_layer_set_text_color(s_wthr_layer, GColorLightGray);
-    text_layer_set_font(s_wthr_layer, s_scp_a);
+    text_layer_set_text_color(s_wthr_layer, s_color_b);
+    text_layer_set_font(s_wthr_layer, s_font_a);
     text_layer_set_text_alignment(s_wthr_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_wthr_layer));
     
     s_batt_layer = text_layer_create(GRect(0, 132, 72, 28));
     text_layer_set_background_color(s_batt_layer, GColorClear);
-    text_layer_set_text_color(s_batt_layer, GColorLightGray);
-    text_layer_set_font(s_batt_layer, s_scp_a);
+    text_layer_set_text_color(s_batt_layer, s_color_c);
+    text_layer_set_font(s_batt_layer, s_font_a);
     text_layer_set_text_alignment(s_batt_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_batt_layer));
     
     s_blth_layer = text_layer_create(GRect(74, 132, 70, 28));
     text_layer_set_background_color(s_blth_layer, GColorClear);
-    text_layer_set_text_color(s_blth_layer, GColorLightGray);
-    text_layer_set_font(s_blth_layer, s_scp_a);
+    text_layer_set_text_color(s_blth_layer, s_color_c);
+    text_layer_set_font(s_blth_layer, s_font_a);
     text_layer_set_text_alignment(s_blth_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_blth_layer));
     
@@ -283,22 +321,26 @@ static void outbox_sent_cb(DictionaryIterator *iterator, void *context) {
  */
 static void tick_cb(struct tm *tick_time, TimeUnits units_changed) {
     
-    if(units_changed == SECOND_UNIT) {
-        update_time();
-    }
-    
-    if(units_changed == MINUTE_UNIT) {
-        update_date();
-        update_tech();
-    }
-    
-    // update the weather on the hour.
-    //
-    if(units_changed == HOUR_UNIT) {
-        DictionaryIterator *iter;
-        app_message_outbox_begin(&iter);
-        dict_write_uint8(iter, 0, 0);
-        app_message_outbox_send();
+    switch(units_changed) {
+        case SECOND_UNIT:
+            update_time();
+            break;
+        case MINUTE_UNIT:
+            update_date();
+            update_tech();
+            break;
+        case HOUR_UNIT:
+            update_cldr();
+
+            // Update the weather.
+            //
+            DictionaryIterator *iter;
+            app_message_outbox_begin(&iter);
+            dict_write_uint8(iter, 0, 0);
+            app_message_outbox_send();
+            break;
+        default:
+            break;
     }
     
 }
@@ -311,15 +353,15 @@ static void unload_cb(Window *window) {
     
     text_layer_destroy(s_date_layer);
     text_layer_destroy(s_time_layer);
-    text_layer_destroy(s_arty_layer);
+    text_layer_destroy(s_cldr_layer);
     text_layer_destroy(s_wthr_layer);
     text_layer_destroy(s_batt_layer);
     text_layer_destroy(s_blth_layer);
     
     bitmap_layer_destroy(s_bg_layer);
     
-    fonts_unload_custom_font(s_scp_a);
-    fonts_unload_custom_font(s_scp_b);
+    fonts_unload_custom_font(s_font_a);
+    fonts_unload_custom_font(s_font_b);
     
 }
 
@@ -361,11 +403,13 @@ static void init() {
     //
     s_battery_state = battery_state_service_peek();
     s_bluetooth_state = bluetooth_connection_service_peek();
+    s_temp_unit = 'F';
 
     // Draw everything.
     //
     update_time();
     update_date();
+    update_cldr();
     update_tech();
     
     // Subscribe to device events.

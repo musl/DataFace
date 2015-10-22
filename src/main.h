@@ -49,7 +49,8 @@ enum {
 //
 static bool s_bluetooth_state;
 static BatteryChargeState s_battery_state;
-static int s_temp;
+static float s_temp;
+static char s_temp_unit;
 static char s_cond[5];
 
 // App Resources
@@ -59,11 +60,16 @@ static BitmapLayer *s_bg_layer;
 static TextLayer *s_batt_layer;
 static TextLayer *s_blth_layer;
 static TextLayer *s_date_layer;
-static TextLayer *s_arty_layer;
+static TextLayer *s_cldr_layer;
 static TextLayer *s_time_layer;
 static TextLayer *s_wthr_layer;
-static GFont s_scp_a;
-static GFont s_scp_b;
+static GFont s_font_a;
+static GFont s_font_b;
+static GColor s_color_a;
+static GColor s_color_b;
+static GColor s_color_c;
+static GColor s_color_error;
+static GColor s_color_warn;
 
 /*
  * If you care enough to organize everything for an app with such a defined
