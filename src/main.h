@@ -50,7 +50,7 @@ enum {
 static bool s_bluetooth_state;
 static BatteryChargeState s_battery_state;
 static int s_temp;
-static char s_cond[4];
+static char s_cond[5];
 
 // App Resources
 //

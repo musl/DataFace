@@ -120,10 +120,10 @@ static void update_time() {
  */
 static void update_wthr() {
     
-    static char buff[7];
+    static char buff[9];
     static const char *unit = "C";
     
-    snprintf(buff, sizeof(buff), "%3s%2d%1s", s_cond, s_temp, unit);
+    snprintf(buff, sizeof(buff), "%4s %2d%1s", s_cond, s_temp, unit);
     text_layer_set_text(s_wthr_layer, buff);
     
 }
@@ -174,7 +174,6 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
                 needs_update = true;
                 break;
             case KEY_CONDITIONS:
-                // TODO - abbreviate / translate conditions
                 strncpy(s_cond, t->value->cstring, sizeof(s_cond - 1));
                 s_cond[sizeof(s_cond) - 1] = '\0';
                 needs_update = true;
@@ -220,29 +219,29 @@ static void load_cb(Window *window) {
     text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
     
-    s_time_layer = text_layer_create(GRect(2, 26, 142, 38));
+    s_time_layer = text_layer_create(GRect(0, 26, 144, 38));
     text_layer_set_background_color(s_time_layer, GColorClear);
     text_layer_set_text_color(s_time_layer, GColorWhite);
     text_layer_set_font(s_time_layer, s_scp_b);
     text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
     
-    s_arty_layer = text_layer_create(GRect(2, 58, 142, 38));
+    s_arty_layer = text_layer_create(GRect(0, 56, 144, 56));
     text_layer_set_background_color(s_arty_layer, GColorClear);
     text_layer_set_text_color(s_arty_layer, GColorRed);
-    text_layer_set_font(s_arty_layer, s_scp_b);
+    text_layer_set_font(s_arty_layer, s_scp_a);
     text_layer_set_text_alignment(s_arty_layer, GTextAlignmentCenter);
-    text_layer_set_text(s_arty_layer, "~~~~~~");
+    text_layer_set_text(s_arty_layer, "~~~~~~~~\n~~~~~~~~");
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_arty_layer));
     
-    s_wthr_layer = text_layer_create(GRect(2, 92, 142, 38));
+    s_wthr_layer = text_layer_create(GRect(0, 104, 144, 28));
     text_layer_set_background_color(s_wthr_layer, GColorClear);
-    text_layer_set_text_color(s_wthr_layer, GColorWhite);
-    text_layer_set_font(s_wthr_layer, s_scp_b);
+    text_layer_set_text_color(s_wthr_layer, GColorLightGray);
+    text_layer_set_font(s_wthr_layer, s_scp_a);
     text_layer_set_text_alignment(s_wthr_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_wthr_layer));
     
-    s_batt_layer = text_layer_create(GRect(2, 130, 70, 28));
+    s_batt_layer = text_layer_create(GRect(0, 132, 72, 28));
     text_layer_set_background_color(s_batt_layer, GColorClear);
     text_layer_set_text_color(s_batt_layer, GColorLightGray);
     text_layer_set_font(s_batt_layer, s_scp_a);

@@ -65,7 +65,7 @@ function locationSuccess(pos) {
         
         data = {
             'KEY_TEMPERATURE': Math.round(json.main.temp),
-            'KEY_CONDITIONS': json.weather[0].main.replace(/[aeiouy]/ig, '').substring(0, 3)
+            'KEY_CONDITIONS': json.weather[0].main.replace(/[aeiou]/ig, '').substring(0, 4)
         };
         
         /*

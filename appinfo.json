@@ -27,8 +27,7 @@
     "sdkVersion": "3",
     "shortName": "DataFace",
     "targetPlatforms": [
-        "basalt",
-        "chalk"
+        "basalt"
     ],
     "uuid": "b6c5b90e-9b5e-4461-85c8-b9832f169d50",
     "versionLabel": "0.1",
