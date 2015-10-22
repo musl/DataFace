@@ -26,7 +26,7 @@
  */
 
 // API Key Source: http://openweathermap.org/appid
-var myAPIKey = "379d77efb8dd4fc21c0f896d53a1b75c";
+var myAPIKey = "";
 
 var xhrRequest = function (url, type, callback) {
     var xhr;
