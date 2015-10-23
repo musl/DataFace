@@ -15,13 +15,9 @@
     "resources": {
         "media": [
             {
-                "file": "fonts/FONT_SCP_SB_38.ttf",
-                "name": "FONT_SCP_SB_38",
-                "type": "font"
-            },
-            {
-                "file": "fonts/FONT_SCP_SB_28.ttf",
-                "name": "FONT_SCP_SB_28",
+                "file": "fonts/FONT_TARGA_MS_31.ttf",
+                "name": "FONT_TARGA_MS_31",
+                "trackingAdjust": 1,
                 "type": "font"
             }
         ]

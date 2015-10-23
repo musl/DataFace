@@ -56,7 +56,7 @@ static bool s_bluetooth_state;
 static BatteryChargeState s_battery_state;
 static float s_temp;
 static char s_temp_unit[2];
-static char s_cond[5];
+static char s_cond[7];
 
 // App Resources
 //
@@ -68,8 +68,7 @@ static TextLayer *s_date_layer;
 static TextLayer *s_cldr_layer;
 static TextLayer *s_time_layer;
 static TextLayer *s_wthr_layer;
-static GFont s_font_a;
-static GFont s_font_b;
+static GFont s_font;
 static GColor s_color_a;
 static GColor s_color_b;
 static GColor s_color_c;

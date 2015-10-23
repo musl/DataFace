@@ -56,8 +56,8 @@ static void update_date() {
  */
 static void update_tech() {
     
-    static char batt_buff[5];
-    static char blth_buff[5];
+    static char batt_buff[9];
+    static char blth_buff[9];
     static char *bt;
     static int bs;
     static int p;
@@ -87,10 +87,13 @@ static void update_tech() {
         text_layer_set_text_color(s_batt_layer, s_color_error);
     }
     
-    snprintf(batt_buff, sizeof(batt_buff), "%3d%c", p, bs);
+    // To make text rendering uniform across the layers, use padding
+    // in the format strings.  These layers overlap, but have transparent
+    // backgrounds.
+    //
+    snprintf(batt_buff, sizeof(batt_buff), "    %3d%c", p, bs);
     text_layer_set_text(s_batt_layer, batt_buff);
-    
-    snprintf(blth_buff, sizeof(blth_buff), " %2s ", bt);
+    snprintf(blth_buff, sizeof(blth_buff), "%2s      ", bt);
     text_layer_set_text(s_blth_layer, blth_buff);
     
 }
@@ -103,12 +106,12 @@ static void update_time() {
     
     time_t gmt = time(NULL);
     struct tm *local_time = localtime(&gmt);
-    static char buff[7];
+    static char buff[9];
     
     if(clock_is_24h_style() == true) {
-        strftime(buff, sizeof(buff), "%H%M%S", local_time);
+        strftime(buff, sizeof(buff), "%H:%M:%S", local_time);
     } else {
-        strftime(buff, sizeof(buff), "%I%M%S", local_time);
+        strftime(buff, sizeof(buff), "%I:%M:%S", local_time);
     }
     text_layer_set_text(s_time_layer, buff);
     
@@ -137,7 +140,7 @@ static void update_wthr() {
             return;
     }
     
-    snprintf(buff, sizeof(buff), "%4s%3d%1c", s_cond, (int)temp, s_temp_unit[0]);
+    snprintf(buff, sizeof(buff), "%-4s%3d%1c", s_cond, (int)temp, s_temp_unit[0]);
     text_layer_set_text_color(s_wthr_layer, s_color_b);
     text_layer_set_text(s_wthr_layer, buff);
     
@@ -151,9 +154,9 @@ static void update_cldr() {
     
     time_t gmt = time(NULL);
     struct tm *local_time = localtime(&gmt);    
-    static char buff[7];
+    static char buff[9];
     
-    strftime(buff, sizeof(buff), "W%U%a", local_time);
+    strftime(buff, sizeof(buff), "ww%U %a", local_time);
     text_layer_set_text(s_cldr_layer, buff);
     
 }
@@ -203,12 +206,12 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
                 needs_update = true;
                 break;
             case KEY_TEMP_UNIT:
-                strncpy(s_temp_unit, t->value->cstring, sizeof(s_temp_unit - 1));
+                strncpy(s_temp_unit, t->value->cstring, sizeof(s_temp_unit));
                 s_temp_unit[sizeof(s_temp_unit) - 1] = '\0';
                 needs_update = true;
                 break;
             case KEY_CONDITIONS:
-                strncpy(s_cond, t->value->cstring, sizeof(s_cond - 1));
+                strncpy(s_cond, t->value->cstring, sizeof(s_cond));
                 s_cond[sizeof(s_cond) - 1] = '\0';
                 needs_update = true;
                 break;
@@ -241,8 +244,14 @@ static void inbox_dropped_cb(AppMessageResult reason, void *context) {
  * Handle window loading.
  */
 static void load_cb(Window *window) {
+    
+    static int s = 31;
+    static int o = 0;
+    static int p = 2;
+    static int w = 144;
+    static int h = 168;
 
-    s_weather_fetching = "  ....  ";
+    s_weather_fetching = "look out";
     
     // Theme Defaults
     //
@@ -252,59 +261,61 @@ static void load_cb(Window *window) {
     s_color_error = GColorRed;
     s_color_warn = GColorOrange;
     s_color_info = GColorPictonBlue;
-    s_font_a = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_SB_28));
-    s_font_b = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_SB_38));
+    
+    s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TARGA_MS_31));
 
     // Window Background
     //
-    s_bg_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
+    s_bg_layer = bitmap_layer_create(GRect(0, 0, w, h));
     bitmap_layer_set_background_color(s_bg_layer, GColorBlack);
     layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_bg_layer));
     
-    // Layers
-    //
-    s_date_layer = text_layer_create(GRect(0, 0, 144, 28));
+#define row(x) (x - 1) * (s + p) + o
+    
+    s_date_layer = text_layer_create(GRect(0, row(1), w, s));
     text_layer_set_background_color(s_date_layer, GColorClear);
     text_layer_set_text_color(s_date_layer, s_color_c);
-    text_layer_set_font(s_date_layer, s_font_a);
+    text_layer_set_font(s_date_layer, s_font);
     text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
     
-    s_cldr_layer = text_layer_create(GRect(0, 26, 144, 38));
+    s_cldr_layer = text_layer_create(GRect(0, row(2), w, s));
     text_layer_set_background_color(s_cldr_layer, GColorClear);
     text_layer_set_text_color(s_cldr_layer, s_color_b);
-    text_layer_set_font(s_cldr_layer, s_font_b);
+    text_layer_set_font(s_cldr_layer, s_font);
     text_layer_set_text_alignment(s_cldr_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_cldr_layer));
     
-    s_time_layer = text_layer_create(GRect(0, 62, 144, 38));
+    s_time_layer = text_layer_create(GRect(0, row(3), w, s));
     text_layer_set_background_color(s_time_layer, GColorClear);
     text_layer_set_text_color(s_time_layer, s_color_a);
-    text_layer_set_font(s_time_layer, s_font_b);
+    text_layer_set_font(s_time_layer, s_font);
     text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
     
-    s_wthr_layer = text_layer_create(GRect(0, 104, 144, 28));
+    s_wthr_layer = text_layer_create(GRect(0, row(4), w, s));
     text_layer_set_background_color(s_wthr_layer, GColorClear);
     text_layer_set_text_color(s_wthr_layer, s_color_info);
-    text_layer_set_font(s_wthr_layer, s_font_a);
+    text_layer_set_font(s_wthr_layer, s_font);
     text_layer_set_text_alignment(s_wthr_layer, GTextAlignmentCenter);
     text_layer_set_text(s_wthr_layer, s_weather_fetching);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_wthr_layer));
     
-    s_batt_layer = text_layer_create(GRect(0, 132, 72, 28));
-    text_layer_set_background_color(s_batt_layer, GColorClear);
-    text_layer_set_text_color(s_batt_layer, s_color_c);
-    text_layer_set_font(s_batt_layer, s_font_a);
-    text_layer_set_text_alignment(s_batt_layer, GTextAlignmentCenter);
-    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_batt_layer));
-    
-    s_blth_layer = text_layer_create(GRect(74, 132, 72, 28));
+    s_blth_layer = text_layer_create(GRect(0, row(5), w, s));
     text_layer_set_background_color(s_blth_layer, GColorClear);
     text_layer_set_text_color(s_blth_layer, s_color_c);
-    text_layer_set_font(s_blth_layer, s_font_a);
+    text_layer_set_font(s_blth_layer, s_font);
     text_layer_set_text_alignment(s_blth_layer, GTextAlignmentCenter);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_blth_layer));
+    
+    s_batt_layer = text_layer_create(GRect(0, row(5), w, s));
+    text_layer_set_background_color(s_batt_layer, GColorClear);
+    text_layer_set_text_color(s_batt_layer, s_color_c);
+    text_layer_set_font(s_batt_layer, s_font);
+    text_layer_set_text_alignment(s_batt_layer, GTextAlignmentCenter);
+    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_batt_layer));
+
+#undef row
     
 }
 
@@ -369,8 +380,7 @@ static void unload_cb(Window *window) {
     
     bitmap_layer_destroy(s_bg_layer);
     
-    fonts_unload_custom_font(s_font_a);
-    fonts_unload_custom_font(s_font_b);
+    fonts_unload_custom_font(s_font);
     
 }
 
