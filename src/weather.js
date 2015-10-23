@@ -25,9 +25,6 @@
  * THE SOFTWARE.
  */
 
-// API Key Source: http://openweathermap.org/appid
-var myAPIKey = "";
-
 var xhrRequest = function (url, type, callback) {
     var xhr;
     
@@ -48,14 +45,17 @@ Pebble.addEventListener('appmessage', function(e) {
 });
 
 function locationSuccess(pos) {
-    var url;
+    var api_key, url;
+    
+    api_key = localStorage.getItem('KEY_API');
+    if(!api_key) return;
     
     url = 'http://api.openweathermap.org/data/2.5/weather?lat=' +
           pos.coords.latitude +
           '&lon=' + 
           pos.coords.longitude +
           '&appid=' +
-          myAPIKey;
+          api_key;
 
     xhrRequest(url, 'GET',  function(responseText) {
         var json, data;
@@ -71,12 +71,14 @@ function locationSuccess(pos) {
         /*
         console.log('Temperature is ' + data.KEY_TEMPERATURE);
         console.log('Conditions are ' + data.KEY_CONDITIONS);
-        */
         Pebble.sendAppMessage(data, function(e) {
-            //console.log('Weather info sent to Pebble successfully!');
+            console.log('Weather info sent to Pebble successfully!');
         }, function(e) {
-            //console.log('Error sending weather info to Pebble!');
+            console.log('Error sending weather info to Pebble!');
         });
+        */
+        
+        Pebble.sendAppMessage(data);
     });
 }
 

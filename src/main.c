@@ -123,7 +123,7 @@ static void update_wthr() {
     static char buff[9];
     static float temp;
     
-    switch(s_temp_unit) {
+    switch(s_temp_unit[0]) {
         case 'C':
             temp = s_temp - 273.15f;
             break;
@@ -137,7 +137,7 @@ static void update_wthr() {
             return;
     }
     
-    snprintf(buff, sizeof(buff), "%4s%3d%1c", s_cond, (int)temp, s_temp_unit);
+    snprintf(buff, sizeof(buff), "%4s%3d%1c", s_cond, (int)temp, s_temp_unit[0]);
     text_layer_set_text_color(s_wthr_layer, s_color_b);
     text_layer_set_text(s_wthr_layer, buff);
     
@@ -202,10 +202,18 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
                 s_temp = ((int)t->value->int32);
                 needs_update = true;
                 break;
+            case KEY_TEMP_UNIT:
+                strncpy(s_temp_unit, t->value->cstring, sizeof(s_temp_unit - 1));
+                s_temp_unit[sizeof(s_temp_unit) - 1] = '\0';
+                needs_update = true;
+                break;
             case KEY_CONDITIONS:
                 strncpy(s_cond, t->value->cstring, sizeof(s_cond - 1));
                 s_cond[sizeof(s_cond) - 1] = '\0';
                 needs_update = true;
+                break;
+            case KEY_API:
+                fetch_weather();
                 break;
             default:
                 APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
@@ -236,7 +244,7 @@ static void load_cb(Window *window) {
 
     s_weather_fetching = "  ....  ";
     
-    // Theme
+    // Theme Defaults
     //
     s_color_a = GColorWhite;
     s_color_b = GColorScreaminGreen;
@@ -333,16 +341,12 @@ static void tick_cb(struct tm *tick_time, TimeUnits units_changed) {
         case MINUTE_UNIT:
             update_date();
             update_tech();
+            if(tick_time->tm_min % 15 == 0) {
+                fetch_weather();
+            }
             break;
         case HOUR_UNIT:
             update_cldr();
-
-            // Update the weather.
-            //
-            DictionaryIterator *iter;
-            app_message_outbox_begin(&iter);
-            dict_write_uint8(iter, 0, 0);
-            app_message_outbox_send();
             break;
         default:
             break;
@@ -370,6 +374,23 @@ static void unload_cb(Window *window) {
     
 }
 
+
+/********************************************************************************
+ * Utilities
+ *******************************************************************************/
+ // Alphabetical order.
+
+/*
+ * Send an AppMessage to fetch the current weather.
+ */
+static void fetch_weather() {
+    
+    DictionaryIterator *iter;
+    app_message_outbox_begin(&iter);
+    dict_write_uint8(iter, 0, 0);
+    app_message_outbox_send();
+    
+}
 
 /********************************************************************************
  * Lifecycle - A basic sketch of the life of a watchface.
@@ -408,7 +429,13 @@ static void init() {
     //
     s_battery_state = battery_state_service_peek();
     s_bluetooth_state = bluetooth_connection_service_peek();
-    s_temp_unit = 'F';
+    
+    if(persist_exists(KEY_TEMP_UNIT)) {
+        persist_read_string(KEY_TEMP_UNIT, s_temp_unit, sizeof(s_temp_unit));
+    } else {
+        strncpy(s_temp_unit, DEFAULT_TEMP_UNIT, sizeof(s_temp_unit));    
+        persist_write_string(KEY_TEMP_UNIT, s_temp_unit);
+    }
 
     // Draw everything.
     //
@@ -439,6 +466,8 @@ static void init() {
  * Scortched earth. Well-organized destruction.
  */
 static void deinit() {
+    
+    persist_write_string(KEY_TEMP_UNIT, s_temp_unit);
     
     // I'm not sure if the unsubscriptions are necessary.
     //

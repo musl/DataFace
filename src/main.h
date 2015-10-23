@@ -32,12 +32,17 @@
 #include <pebble.h>
 
 
-// Macros for weather info.
+// Macros for AppMessage data.
 //
 enum {
     KEY_TEMPERATURE,
-    KEY_CONDITIONS
+    KEY_TEMP_UNIT,
+    KEY_CONDITIONS,
+    KEY_API
 };
+
+// Config Defaults
+#define DEFAULT_TEMP_UNIT "C"
 
 /*
  * Yeah, mamma said not to use globals, but sheesh. This is a tiny, static
@@ -50,7 +55,7 @@ enum {
 static bool s_bluetooth_state;
 static BatteryChargeState s_battery_state;
 static float s_temp;
-static char s_temp_unit;
+static char s_temp_unit[2];
 static char s_cond[5];
 
 // App Resources
@@ -109,4 +114,8 @@ static void inbox_cb(DictionaryIterator *iterator, void *context);
 static void inbox_dropped_cb(AppMessageResult reason, void *context);
 static void outbox_failed_cb(DictionaryIterator *iterator, AppMessageResult reason, void *context);
 static void outbox_sent_cb(DictionaryIterator *iterator, void *context);
+
+// Utilities
+//
+static void fetch_weather();
 
