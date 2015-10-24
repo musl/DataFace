@@ -1,5 +1,5 @@
 # DataFace
-A Nerdy Pebble Watch Face
+A Nerdy Pebble Time Watch Face
 
 Screen Shot
 ---
@@ -10,11 +10,10 @@ Features:
   - Terse, easy-to-read layout:
     - ISO Work Week Number, Abbreviated Day of Week
     - Date (YYYYMMDD)
-    - 12 or 24 hour time (HH:MM:SS)
+    - 12 or 24 hour time (HH:MM:SS, respects watch settings)
     - Weather (Current Conditions abbreviated, Temperature)
-    - Bluetooth Status (bt = connected, nc = not connected)
-    - Battery Status
-  - Fetches the weather with your [OpenWeatherMap AppID](http://openweathermap.org/appid). Remember to sign up and put your AppID into the settings for the watch face.
+    - Bluetooth Status (bt = connected, nc = not connected), Battery Status
+  - Fetches the weather with your [OpenWeatherMap AppID](http://openweathermap.org/appid). Remember to sign up and put your AppID into the settings for the watch face. Otherwise, you'll be told to look outside.
   - Can display temperature in different units: Fahrenheit, Celcius, and Kelvin.
   - Doesn't drain your battery.
 
