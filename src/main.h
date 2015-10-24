@@ -41,7 +41,6 @@ enum {
     KEY_API
 };
 
-// Config Defaults
 #define DEFAULT_TEMP_UNIT "C"
 
 /*
@@ -69,15 +68,15 @@ static TextLayer *s_cldr_layer;
 static TextLayer *s_time_layer;
 static TextLayer *s_wthr_layer;
 static GFont s_font;
-static GColor s_color_a;
-static GColor s_color_b;
-static GColor s_color_c;
-static GColor s_color_error;
-static GColor s_color_warn;
-static GColor s_color_info;
+static GColor color_a;
+static GColor color_b;
+static GColor color_c;
+static GColor color_error;
+static GColor color_warn;
+static GColor color_info;
 
 // Messages
-static char *s_weather_fetching;
+static char *s_weather_fetching = "use eyes";
 
 /*
  * If you care enough to organize everything for an app with such a defined

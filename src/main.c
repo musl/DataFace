@@ -64,10 +64,10 @@ static void update_tech() {
     
     if(s_bluetooth_state) {
         bt = "bt";
-        text_layer_set_text_color(s_blth_layer, s_color_c);
+        text_layer_set_text_color(s_blth_layer, color_c);
     } else {
         bt = "nc";
-        text_layer_set_text_color(s_blth_layer, s_color_error);
+        text_layer_set_text_color(s_blth_layer, color_error);
     }
     
     if(s_battery_state.is_charging) {
@@ -80,11 +80,11 @@ static void update_tech() {
     
     p = s_battery_state.charge_percent;
     if(p > 20) {
-        text_layer_set_text_color(s_batt_layer, s_color_c);
+        text_layer_set_text_color(s_batt_layer, color_c);
     } else if(p > 10) {
-        text_layer_set_text_color(s_batt_layer, s_color_warn);
+        text_layer_set_text_color(s_batt_layer, color_warn);
     } else {
-        text_layer_set_text_color(s_batt_layer, s_color_error);
+        text_layer_set_text_color(s_batt_layer, color_error);
     }
     
     // To make text rendering uniform across the layers, use padding
@@ -141,7 +141,7 @@ static void update_wthr() {
     }
     
     snprintf(buff, sizeof(buff), "%-4s%3d%1c", s_cond, (int)temp, s_temp_unit[0]);
-    text_layer_set_text_color(s_wthr_layer, s_color_b);
+    text_layer_set_text_color(s_wthr_layer, color_b);
     text_layer_set_text(s_wthr_layer, buff);
     
 }
@@ -195,25 +195,22 @@ static void blth_cb(bool state) {
  */
 static void inbox_cb(DictionaryIterator *iterator, void *context) {
     
-    static bool needs_update;
+    bool need_wthr;
     Tuple *t = dict_read_first(iterator);
 
-    needs_update = false;
     while(t != NULL) {
         switch(t->key) {
             case KEY_TEMPERATURE:
                 s_temp = ((int)t->value->int32);
-                needs_update = true;
+                need_wthr = true;
                 break;
             case KEY_TEMP_UNIT:
                 strncpy(s_temp_unit, t->value->cstring, sizeof(s_temp_unit));
-                s_temp_unit[sizeof(s_temp_unit) - 1] = '\0';
-                needs_update = true;
+                need_wthr = true;
                 break;
             case KEY_CONDITIONS:
                 strncpy(s_cond, t->value->cstring, sizeof(s_cond));
-                s_cond[sizeof(s_cond) - 1] = '\0';
-                needs_update = true;
+                need_wthr = true;
                 break;
             case KEY_API:
                 fetch_weather();
@@ -225,7 +222,7 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
         t = dict_read_next(iterator);
     }
     
-    if(needs_update) { update_wthr(); }
+    if(need_wthr) { update_wthr(); }
     
 }
 
@@ -245,77 +242,82 @@ static void inbox_dropped_cb(AppMessageResult reason, void *context) {
  */
 static void load_cb(Window *window) {
     
+    // Right Margin
+    static int m = 4;
+    // Font Size
     static int s = 31;
+    // First Row Offset
     static int o = 0;
+    // Row Top Padding
     static int p = 2;
+    
+    // Screen Size
     static int w = 144;
     static int h = 168;
+    
+    color_a = GColorWhite;
+    color_b = GColorScreaminGreen;
+    color_c = GColorIslamicGreen;
+    color_error = GColorRed;
+    color_warn = GColorYellow;
+    color_info = GColorPictonBlue;
 
-    s_weather_fetching = "look out";
-    
-    // Theme Defaults
-    //
-    s_color_a = GColorWhite;
-    s_color_b = GColorScreaminGreen;
-    s_color_c = GColorIslamicGreen;
-    s_color_error = GColorRed;
-    s_color_warn = GColorOrange;
-    s_color_info = GColorPictonBlue;
-    
+    // Load resources we'll have to destroy later.
     s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TARGA_MS_31));
 
+// NO DESCENDERS FOR YOU
+#define make_row(x) text_layer_create(GRect(m, (x - 1) * (s + p) + o, w, s))
+    
     // Window Background
     //
     s_bg_layer = bitmap_layer_create(GRect(0, 0, w, h));
     bitmap_layer_set_background_color(s_bg_layer, GColorBlack);
     layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_bg_layer));
-    
-#define row(x) (x - 1) * (s + p) + o
-    
-    s_date_layer = text_layer_create(GRect(0, row(1), w, s));
-    text_layer_set_background_color(s_date_layer, GColorClear);
-    text_layer_set_text_color(s_date_layer, s_color_c);
-    text_layer_set_font(s_date_layer, s_font);
-    text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
-    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
-    
-    s_cldr_layer = text_layer_create(GRect(0, row(2), w, s));
+
+    s_cldr_layer = make_row(1);
     text_layer_set_background_color(s_cldr_layer, GColorClear);
-    text_layer_set_text_color(s_cldr_layer, s_color_b);
+    text_layer_set_text_color(s_cldr_layer, color_c);
     text_layer_set_font(s_cldr_layer, s_font);
-    text_layer_set_text_alignment(s_cldr_layer, GTextAlignmentCenter);
+    text_layer_set_text_alignment(s_cldr_layer, GTextAlignmentLeft);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_cldr_layer));
     
-    s_time_layer = text_layer_create(GRect(0, row(3), w, s));
+    s_date_layer = make_row(2);
+    text_layer_set_background_color(s_date_layer, GColorClear);
+    text_layer_set_text_color(s_date_layer, color_b);
+    text_layer_set_font(s_date_layer, s_font);
+    text_layer_set_text_alignment(s_date_layer, GTextAlignmentLeft);
+    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
+    
+    s_time_layer = make_row(3);
     text_layer_set_background_color(s_time_layer, GColorClear);
-    text_layer_set_text_color(s_time_layer, s_color_a);
+    text_layer_set_text_color(s_time_layer, color_a);
     text_layer_set_font(s_time_layer, s_font);
-    text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
+    text_layer_set_text_alignment(s_time_layer, GTextAlignmentLeft);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
     
-    s_wthr_layer = text_layer_create(GRect(0, row(4), w, s));
+    s_wthr_layer = make_row(4);
     text_layer_set_background_color(s_wthr_layer, GColorClear);
-    text_layer_set_text_color(s_wthr_layer, s_color_info);
+    text_layer_set_text_color(s_wthr_layer, color_info);
     text_layer_set_font(s_wthr_layer, s_font);
-    text_layer_set_text_alignment(s_wthr_layer, GTextAlignmentCenter);
+    text_layer_set_text_alignment(s_wthr_layer, GTextAlignmentLeft);
     text_layer_set_text(s_wthr_layer, s_weather_fetching);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_wthr_layer));
     
-    s_blth_layer = text_layer_create(GRect(0, row(5), w, s));
+    s_blth_layer = make_row(5);
     text_layer_set_background_color(s_blth_layer, GColorClear);
-    text_layer_set_text_color(s_blth_layer, s_color_c);
+    text_layer_set_text_color(s_blth_layer, color_c);
     text_layer_set_font(s_blth_layer, s_font);
-    text_layer_set_text_alignment(s_blth_layer, GTextAlignmentCenter);
+    text_layer_set_text_alignment(s_blth_layer, GTextAlignmentLeft);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_blth_layer));
     
-    s_batt_layer = text_layer_create(GRect(0, row(5), w, s));
+    s_batt_layer = make_row(5);
     text_layer_set_background_color(s_batt_layer, GColorClear);
-    text_layer_set_text_color(s_batt_layer, s_color_c);
+    text_layer_set_text_color(s_batt_layer, color_c);
     text_layer_set_font(s_batt_layer, s_font);
-    text_layer_set_text_alignment(s_batt_layer, GTextAlignmentCenter);
+    text_layer_set_text_alignment(s_batt_layer, GTextAlignmentLeft);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_batt_layer));
 
-#undef row
+#undef make_row
     
 }
 
@@ -435,18 +437,20 @@ static void init() {
     });
     window_stack_push(s_main_window, true);
     
-    // Update tech stats.
+    // Handle config defaults
     //
-    s_battery_state = battery_state_service_peek();
-    s_bluetooth_state = bluetooth_connection_service_peek();
-    
     if(persist_exists(KEY_TEMP_UNIT)) {
         persist_read_string(KEY_TEMP_UNIT, s_temp_unit, sizeof(s_temp_unit));
     } else {
         strncpy(s_temp_unit, DEFAULT_TEMP_UNIT, sizeof(s_temp_unit));    
         persist_write_string(KEY_TEMP_UNIT, s_temp_unit);
     }
-
+    
+    // Update tech stats.
+    //
+    s_battery_state = battery_state_service_peek();
+    s_bluetooth_state = bluetooth_connection_service_peek();
+    
     // Draw everything.
     //
     update_time();
@@ -469,6 +473,7 @@ static void init() {
     
     // Listen for messages.
     app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+    
 }
 
 

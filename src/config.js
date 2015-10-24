@@ -27,7 +27,7 @@
 
 
 // The URL for the configuration page.
-var url = 'https://hix.io/misc/dataface.html';
+var url = 'https://hix.io/misc/dataface/';
 
 
 // Stuff we're going to put in local storage on the phone.

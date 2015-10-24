@@ -3,7 +3,8 @@
         "KEY_API": 3,
         "KEY_CONDITIONS": 2,
         "KEY_TEMPERATURE": 0,
-        "KEY_TEMP_UNIT": 1
+        "KEY_TEMP_UNIT": 1,
+        "KEY_THEME": 4
     },
     "capabilities": [
         "location",
@@ -15,10 +16,21 @@
     "resources": {
         "media": [
             {
-                "file": "fonts/FONT_TARGA_MS_31.ttf",
+                "file": "fonts/font_targa_ms_31.ttf",
                 "name": "FONT_TARGA_MS_31",
                 "trackingAdjust": 1,
                 "type": "font"
+            },
+            {
+                "file": "images/screenshot.png",
+                "name": "SCREENSHOT",
+                "type": "png"
+            },
+            {
+                "file": "images/screenshot_tiny.png",
+                "menuIcon": true,
+                "name": "SCREENSHOT_TINY",
+                "type": "png"
             }
         ]
     },
