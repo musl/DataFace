@@ -22,3 +22,4 @@ Planned Features:
   - Customizable Colors
   - Notification / Timeline indicator
   - AM/PM Indicator
+  - Time Zone Indicator
