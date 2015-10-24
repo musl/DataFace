@@ -76,7 +76,7 @@ static GColor color_warn;
 static GColor color_info;
 
 // Messages
-static char *s_weather_fetching = "use eyes";
+static char *s_weather_fetching = "look out";
 
 /*
  * If you care enough to organize everything for an app with such a defined
