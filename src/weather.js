@@ -25,13 +25,15 @@
  * THE SOFTWARE.
  */
 
-var xhrRequest = function (url, type, callback) {
-    var xhr;
+var owm_url = 'http://api.openweathermap.org/data/2.5/weather';
+
+var xhr = function (url, type, callback) {
+    var req;
     
-    xhr = new XMLHttpRequest();
-    xhr.onload = function () { callback(this.responseText); };
-    xhr.open(type, url);
-    xhr.send();
+    req = new XMLHttpRequest();
+    req.onload = function () { callback(this.responseText); };
+    req.open(type, url);
+    req.send();
 };
 
 Pebble.addEventListener('ready', function(e) {
@@ -45,45 +47,35 @@ Pebble.addEventListener('appmessage', function(e) {
 });
 
 function locationSuccess(pos) {
-    var api_key, url;
+    var appid, url;
     
-    api_key = localStorage.getItem('KEY_API');
-    if(!api_key) return;
+    appid = localStorage.getItem('KEY_API');
+    if(!appid) return;
     
-    url = 'http://api.openweathermap.org/data/2.5/weather?lat=' +
-          pos.coords.latitude +
-          '&lon=' + 
-          pos.coords.longitude +
-          '&appid=' +
-          api_key;
+    url = owm_url +
+		  '?lat=' + pos.coords.latitude +
+          '&lon=' + pos.coords.longitude +
+          '&appid=' + appid;
 
-    xhrRequest(url, 'GET',  function(responseText) {
-        var json, data;
+    xhr(url, 'GET',  function(responseText) {
+        var json;
         
-        json = JSON.parse(responseText);
-        //console.log(responseText);
-        
-        data = {
-            'KEY_TEMPERATURE': Math.round(json.main.temp),
-            'KEY_CONDITIONS': json.weather[0].main.replace(/[aeiou]/ig, '').substring(0, 4)
-        };
-        
-        /*
-        console.log('Temperature is ' + data.KEY_TEMPERATURE);
-        console.log('Conditions are ' + data.KEY_CONDITIONS);
-        Pebble.sendAppMessage(data, function(e) {
-            console.log('Weather info sent to Pebble successfully!');
-        }, function(e) {
-            console.log('Error sending weather info to Pebble!');
-        });
-        */
-        
-        Pebble.sendAppMessage(data);
+		try {
+        	json = JSON.parse(responseText);
+			Pebble.sendAppMessage({
+				'KEY_TEMPERATURE': Math.round(json.main.temp),
+				'KEY_CONDITIONS': json.weather[0].main.replace(/[aeiou]/ig, '').substring(0, 4)
+			});
+		} catch(error) {
+			console.log(error);
+			Pebble.sendAppMessage({'KEY_WEATHER_FAIL': true});
+		}
     });
 }
 
 function locationError(err) {
-    //console.log('Error requesting location!');
+    console.log('Error requesting location: ' + err);
+	Pebble.sendAppMessage({'KEY_WEATHER_FAIL': true});
 }
 
 function getWeather() {

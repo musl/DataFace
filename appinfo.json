@@ -1,10 +1,10 @@
 {
     "appKeys": {
-        "KEY_API": 3,
-        "KEY_CONDITIONS": 2,
         "KEY_TEMPERATURE": 0,
         "KEY_TEMP_UNIT": 1,
-        "KEY_THEME": 4
+        "KEY_CONDITIONS": 2,
+        "KEY_API": 3,
+		"KEY_WEATHER_FAIL": 4
     },
     "capabilities": [
         "location",

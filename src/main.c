@@ -125,6 +125,8 @@ static void update_wthr() {
     
     static char buff[9];
     static float temp;
+
+	if(s_temp == 0) return;
     
     switch(s_temp_unit[0]) {
         case 'C':
@@ -215,6 +217,10 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
             case KEY_API:
                 fetch_weather();
                 break;
+			case KEY_WEATHER_FAIL:
+				text_layer_set_text(s_wthr_layer, "API KEY?");
+				text_layer_set_text_color(s_wthr_layer, color_error);
+				break;
             default:
                 APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
                 break;

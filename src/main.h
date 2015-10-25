@@ -38,7 +38,8 @@ enum {
     KEY_TEMPERATURE,
     KEY_TEMP_UNIT,
     KEY_CONDITIONS,
-    KEY_API
+    KEY_API,
+	KEY_WEATHER_FAIL
 };
 
 #define DEFAULT_TEMP_UNIT "C"
@@ -51,9 +52,9 @@ enum {
 
 // App State
 //
-static bool s_bluetooth_state;
+static bool s_bluetooth_state = false;
 static BatteryChargeState s_battery_state;
-static float s_temp;
+static float s_temp = 0;
 static char s_temp_unit[2];
 static char s_cond[7];
 
@@ -76,7 +77,7 @@ static GColor color_warn;
 static GColor color_info;
 
 // Messages
-static char *s_weather_fetching = "look out";
+static char *s_weather_fetching = "FETCHING";
 
 /*
  * If you care enough to organize everything for an app with such a defined
