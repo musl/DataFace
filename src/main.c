@@ -36,12 +36,81 @@
 
 
 /*
+ * Display a word about the battery state.
+ */
+static void update_batt(BatteryChargeState battery_state) {
+
+    static char buff[9];
+    static char state;
+    static int charge;
+
+    if(battery_state.is_charging) {
+        state = 'c';
+    } else if(battery_state.is_plugged) {
+        state = 'p';
+    } else {
+        state = '%';    
+    }
+    
+    charge = battery_state.charge_percent;
+    if(charge > 20) {
+        text_layer_set_text_color(s_batt_layer, s_color_c);
+    } else if(charge > 10) {
+        text_layer_set_text_color(s_batt_layer, s_color_warn);
+    } else {
+        text_layer_set_text_color(s_batt_layer, s_color_error);
+    }
+
+	// Shared row with the bluetooth status.
+	//
+    snprintf(buff, sizeof(buff), "    %3d%c", charge, state);
+    text_layer_set_text(s_batt_layer, buff);
+    
+}
+
+
+/*
+ * Display a word about bluetooth state.
+ */
+static void update_blth(bool bluetooth_state) {
+    
+    static char buff[9];
+    static char *state;
+    
+    if(bluetooth_state) {
+        state = "bt";
+        text_layer_set_text_color(s_blth_layer, s_color_c);
+    } else {
+        state = "nc";
+        text_layer_set_text_color(s_blth_layer, s_color_error);
+    }
+    
+	// Shared row with the battery status.
+	//
+    snprintf(buff, sizeof(buff), "%2s      ", state);
+    text_layer_set_text(s_blth_layer, buff);
+    
+}
+
+
+/*
+ * Display a couple of words about the calendar.
+ */
+static void update_cldr(struct tm *local_time) {
+    
+    static char buff[9];
+    
+    strftime(buff, sizeof(buff), "ww%U %a", local_time);
+    text_layer_set_text(s_cldr_layer, buff);
+    
+}
+
+
+/*
  * Display the date in the tersest format possible.
  */
-static void update_date() {
+static void update_date(struct tm *local_time) {
     
-    time_t gmt = time(NULL);
-    struct tm *local_time = localtime(&gmt);
     static char buff[9];
     
     strftime(buff, sizeof(buff), "%Y%m%d", local_time);
@@ -51,60 +120,10 @@ static void update_date() {
 
 
 /*
- * Display some text about devices that I care about inside the watch.
- */
-static void update_tech() {
-    
-    static char batt_buff[9];
-    static char blth_buff[9];
-    static char *bt;
-    static int bs;
-    static int p;
-    
-    if(s_bluetooth_state) {
-        bt = "bt";
-        text_layer_set_text_color(s_blth_layer, color_c);
-    } else {
-        bt = "nc";
-        text_layer_set_text_color(s_blth_layer, color_error);
-    }
-    
-    if(s_battery_state.is_charging) {
-        bs = (int) 'c';
-    } else if(s_battery_state.is_charging) {
-        bs = (int) 'p';
-    } else {
-        bs = (int) '%';    
-    }
-    
-    p = s_battery_state.charge_percent;
-    if(p > 20) {
-        text_layer_set_text_color(s_batt_layer, color_c);
-    } else if(p > 10) {
-        text_layer_set_text_color(s_batt_layer, color_warn);
-    } else {
-        text_layer_set_text_color(s_batt_layer, color_error);
-    }
-    
-    // To make text rendering uniform across the layers, use padding
-    // in the format strings.  These layers overlap, but have transparent
-    // backgrounds.
-    //
-    snprintf(batt_buff, sizeof(batt_buff), "    %3d%c", p, bs);
-    text_layer_set_text(s_batt_layer, batt_buff);
-    snprintf(blth_buff, sizeof(blth_buff), "%2s      ", bt);
-    text_layer_set_text(s_blth_layer, blth_buff);
-    
-}
-
-
-/*
  * Display the time in the tersest format possible.
  */
-static void update_time() {
+static void update_time(struct tm *local_time) {
     
-    time_t gmt = time(NULL);
-    struct tm *local_time = localtime(&gmt);
     static char buff[9];
     
     if(clock_is_24h_style() == true) {
@@ -142,23 +161,8 @@ static void update_wthr() {
     }
     
     snprintf(buff, sizeof(buff), "%-4s%3d%1c", s_cond, (int)temp, s_temp_unit[0]);
-    text_layer_set_text_color(s_wthr_layer, color_b);
+    text_layer_set_text_color(s_wthr_layer, s_color_b);
     text_layer_set_text(s_wthr_layer, buff);
-    
-}
-
-
-/*
- *
- */
-static void update_cldr() {
-    
-    time_t gmt = time(NULL);
-    struct tm *local_time = localtime(&gmt);    
-    static char buff[9];
-    
-    strftime(buff, sizeof(buff), "ww%U %a", local_time);
-    text_layer_set_text(s_cldr_layer, buff);
     
 }
 
@@ -170,29 +174,9 @@ static void update_cldr() {
 
 
 /*
- * Handle battery state changes.
- */
-static void batt_cb(BatteryChargeState state) {
-    
-    s_battery_state = state;
-    update_tech();
-    
-}
-
-
-/*
- * Handle bluetooth state changes.
- */
-static void blth_cb(bool state) {
-    
-    s_bluetooth_state = state;
-    update_tech();
-    
-}
-
-
-/*
- * Handle messages from the AppMessage API.
+ * Handle messages from the AppMessage API. This is responsible for
+ * handling messages about weather and configuration. Configuration
+ * values that persist on the watch are stored here.
  */
 static void inbox_cb(DictionaryIterator *iterator, void *context) {
     
@@ -207,6 +191,7 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
                 break;
             case KEY_TEMP_UNIT:
                 strncpy(s_temp_unit, t->value->cstring, sizeof(s_temp_unit));
+        		persist_write_string(KEY_TEMP_UNIT, s_temp_unit);
                 need_wthr = true;
                 break;
             case KEY_CONDITIONS:
@@ -218,7 +203,7 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
                 break;
 			case KEY_WEATHER_FAIL:
 				text_layer_set_text(s_wthr_layer, "API KEY?");
-				text_layer_set_text_color(s_wthr_layer, color_error);
+				text_layer_set_text_color(s_wthr_layer, s_color_error);
 				break;
             default:
                 APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
@@ -260,12 +245,12 @@ static void load_cb(Window *window) {
     static int w = 144;
     static int h = 168;
     
-    color_a = GColorWhite;
-    color_b = GColorScreaminGreen;
-    color_c = GColorIslamicGreen;
-    color_error = GColorRed;
-    color_warn = GColorYellow;
-    color_info = GColorPictonBlue;
+    s_color_a = GColorWhite;
+    s_color_b = GColorScreaminGreen;
+    s_color_c = GColorIslamicGreen;
+    s_color_error = GColorRed;
+    s_color_warn = GColorYellow;
+    s_color_info = GColorPictonBlue;
 
     // Load resources we'll have to destroy later.
     s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TARGA_MS_31));
@@ -281,28 +266,28 @@ static void load_cb(Window *window) {
 
     s_cldr_layer = make_row(1);
     text_layer_set_background_color(s_cldr_layer, GColorClear);
-    text_layer_set_text_color(s_cldr_layer, color_c);
+    text_layer_set_text_color(s_cldr_layer, s_color_c);
     text_layer_set_font(s_cldr_layer, s_font);
     text_layer_set_text_alignment(s_cldr_layer, GTextAlignmentLeft);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_cldr_layer));
     
     s_date_layer = make_row(2);
     text_layer_set_background_color(s_date_layer, GColorClear);
-    text_layer_set_text_color(s_date_layer, color_b);
+    text_layer_set_text_color(s_date_layer, s_color_b);
     text_layer_set_font(s_date_layer, s_font);
     text_layer_set_text_alignment(s_date_layer, GTextAlignmentLeft);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
     
     s_time_layer = make_row(3);
     text_layer_set_background_color(s_time_layer, GColorClear);
-    text_layer_set_text_color(s_time_layer, color_a);
+    text_layer_set_text_color(s_time_layer, s_color_a);
     text_layer_set_font(s_time_layer, s_font);
     text_layer_set_text_alignment(s_time_layer, GTextAlignmentLeft);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
     
     s_wthr_layer = make_row(4);
     text_layer_set_background_color(s_wthr_layer, GColorClear);
-    text_layer_set_text_color(s_wthr_layer, color_info);
+    text_layer_set_text_color(s_wthr_layer, s_color_info);
     text_layer_set_font(s_wthr_layer, s_font);
     text_layer_set_text_alignment(s_wthr_layer, GTextAlignmentLeft);
     text_layer_set_text(s_wthr_layer, s_weather_fetching);
@@ -310,14 +295,14 @@ static void load_cb(Window *window) {
     
     s_blth_layer = make_row(5);
     text_layer_set_background_color(s_blth_layer, GColorClear);
-    text_layer_set_text_color(s_blth_layer, color_c);
+    text_layer_set_text_color(s_blth_layer, s_color_c);
     text_layer_set_font(s_blth_layer, s_font);
     text_layer_set_text_alignment(s_blth_layer, GTextAlignmentLeft);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_blth_layer));
     
     s_batt_layer = make_row(5);
     text_layer_set_background_color(s_batt_layer, GColorClear);
-    text_layer_set_text_color(s_batt_layer, color_c);
+    text_layer_set_text_color(s_batt_layer, s_color_c);
     text_layer_set_font(s_batt_layer, s_font);
     text_layer_set_text_alignment(s_batt_layer, GTextAlignmentLeft);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_batt_layer));
@@ -353,19 +338,15 @@ static void outbox_sent_cb(DictionaryIterator *iterator, void *context) {
 static void tick_cb(struct tm *tick_time, TimeUnits units_changed) {
 
     if(bit_is_set(units_changed, SECOND_UNIT)) {
-        update_time();
-    }
+		update_cldr(tick_time);
+		update_date(tick_time);
+		update_time(tick_time);
+	}
 
     if(bit_is_set(units_changed, MINUTE_UNIT)) {
-        update_date();
-        update_tech();
         if(tick_time->tm_min % 15 == 0) fetch_weather();
     }
 
-    if(bit_is_set(units_changed, HOUR_UNIT)) {
-        update_cldr();
-    }
-    
 }
 
 
@@ -428,8 +409,14 @@ int main( void ) {
  * mainly here because main() would be messy otherwise.
  */
 static void init() {
+
+	BatteryChargeState battery_state;
+	bool bluetooth_state;
+	time_t gmt;
+	struct tm *local_time;
     
-    // Build the main window.
+    // Build the main window and register callbacks so that the UI gets
+	// drawn.
     //
     s_main_window = window_create();
     window_set_window_handlers(s_main_window, (WindowHandlers) {
@@ -438,7 +425,8 @@ static void init() {
     });
     window_stack_push(s_main_window, true);
     
-    // Handle config defaults
+    // Read the stored configuration keys or write defaults if they
+	// don't exist so that the config is properly loaded.
     //
     if(persist_exists(KEY_TEMP_UNIT)) {
         persist_read_string(KEY_TEMP_UNIT, s_temp_unit, sizeof(s_temp_unit));
@@ -447,33 +435,43 @@ static void init() {
         persist_write_string(KEY_TEMP_UNIT, s_temp_unit);
     }
     
-    // Update tech stats.
+    // Prepare to update the UI manually.
     //
-    s_battery_state = battery_state_service_peek();
-    s_bluetooth_state = bluetooth_connection_service_peek();
-    
-    // Draw everything.
+    battery_state = battery_state_service_peek();
+    bluetooth_state = bluetooth_connection_service_peek();
+	gmt = time(NULL);
+	local_time = localtime(&gmt);
+
+    // Draw everything that we can, so that there isn't a blank screen
+	// on start-up.
     //
-    update_time();
-    update_date();
-    update_cldr();
-    update_tech();
+    update_time(local_time);
+    update_date(local_time);
+    update_cldr(local_time);
+    update_batt(battery_state);
+	update_blth(bluetooth_state);
     
-    // Subscribe to device events.
+    // Subscribe to device events so that changes to the battery state,
+	// bluetooth state, or time cause the UI to update.
     //
-    battery_state_service_subscribe(batt_cb);
-    bluetooth_connection_service_subscribe(blth_cb);
-    tick_timer_service_subscribe(SECOND_UNIT | MINUTE_UNIT | HOUR_UNIT, tick_cb);
+    battery_state_service_subscribe(update_batt);
+    bluetooth_connection_service_subscribe(update_blth);
+    tick_timer_service_subscribe(SECOND_UNIT | MINUTE_UNIT, tick_cb);
     
-    // Register interest in AppMessage events.
+    // Register interest in AppMessage events so that handlers get
+	// called when messages arrive, leave, or fail.
     //
     app_message_register_inbox_received(inbox_cb);
     app_message_register_inbox_dropped(inbox_dropped_cb);
     app_message_register_outbox_failed(outbox_failed_cb);
     app_message_register_outbox_sent(outbox_sent_cb);
     
-    // Listen for messages.
-    app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+    // Listen for messages so that the weather and configuration get
+	// updated.
+	//
+	app_message_open(
+			app_message_inbox_size_maximum(),
+			app_message_outbox_size_maximum());
     
 }
 
@@ -483,14 +481,10 @@ static void init() {
  */
 static void deinit() {
     
-    persist_write_string(KEY_TEMP_UNIT, s_temp_unit);
-    
-    // I'm not sure if the unsubscriptions are necessary.
-    //
     tick_timer_service_unsubscribe();
     bluetooth_connection_service_unsubscribe();
     battery_state_service_unsubscribe();
-    
+
     window_destroy(s_main_window);
     
 }

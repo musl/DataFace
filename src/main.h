@@ -54,8 +54,6 @@ enum {
 
 // App State
 //
-static bool s_bluetooth_state = false;
-static BatteryChargeState s_battery_state;
 static float s_temp = 0;
 static char s_temp_unit[2];
 static char s_cond[7];
@@ -71,15 +69,15 @@ static TextLayer *s_cldr_layer;
 static TextLayer *s_time_layer;
 static TextLayer *s_wthr_layer;
 static GFont s_font;
-static GColor color_a;
-static GColor color_b;
-static GColor color_c;
-static GColor color_error;
-static GColor color_warn;
-static GColor color_info;
+static GColor s_color_a;
+static GColor s_color_b;
+static GColor s_color_c;
+static GColor s_color_error;
+static GColor s_color_warn;
+static GColor s_color_info;
 
 // Messages
-static char *s_weather_fetching = "FETCHING";
+static const char *s_weather_fetching = "FETCHING";
 
 /*
  * If you care enough to organize everything for an app with such a defined
@@ -93,9 +91,11 @@ static void init();
 
 // Display
 //
-static void update_date();
-static void update_tech();
-static void update_time();
+static void update_batt(BatteryChargeState battery_state);
+static void update_blth(bool bluetooth_state);
+static void update_cldr(struct tm *local_time);
+static void update_date(struct tm *local_time);
+static void update_time(struct tm *local_time);
 static void update_wthr();
 
 // Window API
@@ -103,10 +103,7 @@ static void update_wthr();
 static void load_cb(Window *window);
 static void unload_cb(Window *window);
 
-// Battery, Bluetooth, and Time APIs
-//
-static void batt_cb(BatteryChargeState state);
-static void blth_cb(bool state);
+// TickTimerService API
 static void tick_cb(struct tm *tick_time, TimeUnits units_changed);
 
 // AppMessage API
