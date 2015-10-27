@@ -26,10 +26,8 @@
  * THE SOFTWARE.
  */
 
-
 // Organize ALL THE THINGS.
 #include "main.h"
-
 
 /********************************************************************************
  * Display - Functions that display stuff. It's arts and crafts time!

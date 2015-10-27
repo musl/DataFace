@@ -1,4 +1,5 @@
-/*
+/* vim: set nosta noet ts=4 sw=4 ft=javascript:
+ *
  * DataFace
  * A functional, minimal watchface for hacker-ish types.
  *
