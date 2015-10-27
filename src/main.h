@@ -1,4 +1,5 @@
-/*
+/* vim: set nosta noet ts=4 sw=4 ft=c:
+ *
  * DataFace
  * A functional, minimal watchface for hacker-ish types.
  *
@@ -25,14 +26,11 @@
  * THE SOFTWARE.
  */
 
-
 #pragma once
-
 
 #include <pebble.h>
 
-
-// Macros for AppMessage data.
+// AppMessage Keys. Make sure these match those in appinfo.json!
 //
 enum {
     KEY_TEMPERATURE,
@@ -42,7 +40,11 @@ enum {
 	KEY_WEATHER_FAIL
 };
 
+// Defaults
 #define DEFAULT_TEMP_UNIT "C"
+
+// Macros
+#define bit_is_set(value, mask) (value & mask) != 0
 
 /*
  * Yeah, mamma said not to use globals, but sheesh. This is a tiny, static

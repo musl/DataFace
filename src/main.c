@@ -1,3 +1,4 @@
+// vim: set nosta noet ts=4 sw=4 ft=c:
 /*
  * DataFace
  * A functional, minimal watchface for hacker-ish types.
@@ -352,23 +353,19 @@ static void outbox_sent_cb(DictionaryIterator *iterator, void *context) {
  * Handle time changes.
  */
 static void tick_cb(struct tm *tick_time, TimeUnits units_changed) {
-    
-    switch(units_changed) {
-        case SECOND_UNIT:
-            update_time();
-            break;
-        case MINUTE_UNIT:
-            update_date();
-            update_tech();
-            if(tick_time->tm_min % 15 == 0) {
-                fetch_weather();
-            }
-            break;
-        case HOUR_UNIT:
-            update_cldr();
-            break;
-        default:
-            break;
+
+    if(bit_is_set(units_changed, SECOND_UNIT)) {
+        update_time();
+    }
+
+    if(bit_is_set(units_changed, MINUTE_UNIT)) {
+        update_date();
+        update_tech();
+        if(tick_time->tm_min % 15 == 0) fetch_weather();
+    }
+
+    if(bit_is_set(units_changed, HOUR_UNIT)) {
+        update_cldr();
     }
     
 }
