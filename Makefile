@@ -12,32 +12,25 @@
 .PHONY: all check_env clean install logs
 
 # A default list of things to do when no arguments are given.
-all: check_env clean logs
+all: logs
 
 ########################################################################
 # Tasks
 ########################################################################
-#
-# Feel free to run these individually as appropriate.
-# For example:
-#     make clean
-#     make build
-#
 
-# Make sure that the tool know where your phone is.
-#
 check_env:
 ifndef PEBBLE_PHONE
-	$(error PEBBLE_PHONE is not defined)
+	$(error The environment variable PEBBLE_PHONE is not defined.\
+		Please set it to the hostname or IP address for your phone)
 endif
 
 clean:
 	pebble clean
 
-build:
+pbw:
 	pebble build
 
-install: check_env build
+install: check_env pbw
 	pebble install
 
 logs: check_env install
