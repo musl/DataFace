@@ -34,23 +34,26 @@ var url = 'https://hix.io/misc/dataface/';
 // Stuff we're going to put in local storage on the phone.
 //
 var keys = [
-    'KEY_API',
-    'KEY_TEMP_UNIT'
+	'KEY_CONFIG_API_KEY',
+	'KEY_CONFIG_TEMP_UNIT',
+	'KEY_CONFIG_LATITUDE',
+	'KEY_CONFIG_LONGITUDE',
+	'KEY_CONFIG_THEME'
 ];
 
 
 // Utility for checking for emptyness.
 //
 function isEmpty(obj) {
-    if (obj === null) return true;
-    if (obj.length === 0) return true;
-    if (obj.length > 0) return false;
-    
-    for (var key in obj) {
-        if (hasOwnProperty.call(obj, key)) return false;
-    }
-    
-    return true;
+	if (obj === null) return true;
+	if (obj.length === 0) return true;
+	if (obj.length > 0) return false;
+
+	for (var key in obj) {
+		if (hasOwnProperty.call(obj, key)) return false;
+	}
+
+	return true;
 }
 
 
@@ -58,48 +61,48 @@ function isEmpty(obj) {
 // and display the configuration page.
 //
 Pebble.addEventListener('showConfiguration', function(e) {
-    var  i, query, value;
-    
-    query = [];
-    
-    for(i = 0; i < keys.length; i++) {
-        value = localStorage.getItem(keys[i]);
-        if(value) query.push(keys[i] + '=' + encodeURIComponent(value));
-    }
-    
-    if(query.length === 0) {
-        Pebble.openURL(url);
-        return;
-    }
-    
-    Pebble.openURL(url + '?' + query.join('&'));
+	var  i, query, value;
+
+	query = [];
+
+	for(i = 0; i < keys.length; i++) {
+		value = localStorage.getItem(keys[i]);
+		if(value) query.push(keys[i] + '=' + encodeURIComponent(value));
+	}
+
+	if(query.length === 0) {
+		Pebble.openURL(url);
+		return;
+	}
+
+	Pebble.openURL(url + '?' + query.join('&'));
 });
 
 
 // Handle configuration changes.
 //
 Pebble.addEventListener('webviewclosed', function(e) {
-    var data, config;
-    
-    config = {};
-    data = JSON.parse(decodeURIComponent(e.response));
-    //console.log('Config window returned: ', JSON.stringify(config));
+	var data, config;
 
-    // Only store keys we know about.
-    //
-    for(var i = 0; i < keys.length; i++) {
-        if(data[keys[i]]) {
-            localStorage.setItem(keys[i], data[keys[i]]);
-            config[keys[i]] = data[keys[i]];
-        }
-    }
-    
-    if(isEmpty(config)) return;
+	config = {};
+	data = JSON.parse(decodeURIComponent(e.response));
+	//console.log('Config window returned: ', JSON.stringify(config));
 
-    Pebble.sendAppMessage(config, function() {
-        console.log('Sent config data to Pebble');  
-    }, function() {
-        console.log('Failed to send config data!');
-    });
+	// Only store keys we know about.
+	//
+	for(var i = 0; i < keys.length; i++) {
+		if(data[keys[i]]) {
+			localStorage.setItem(keys[i], data[keys[i]]);
+			config[keys[i]] = data[keys[i]];
+		}
+	}
+
+	if(isEmpty(config)) return;
+
+	Pebble.sendAppMessage(config, function() {
+		console.log('Sent config data to Pebble');  
+	}, function() {
+		console.log('Failed to send config data!');
+	});
 });
 

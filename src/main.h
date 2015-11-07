@@ -32,16 +32,23 @@
 
 // AppMessage Keys. Make sure these match those in appinfo.json!
 //
-enum {
-    KEY_TEMPERATURE,
-    KEY_TEMP_UNIT,
-    KEY_CONDITIONS,
-    KEY_API,
-	KEY_WEATHER_FAIL
-};
+// Weather Config
+#define KEY_CONFIG_API_KEY 100
+#define KEY_CONFIG_LATITUDE 101
+#define KEY_CONFIG_LONGITUDE 102
+#define KEY_CONFIG_TEMP_UNIT 103
+// Look & Feel Config
+#define KEY_CONFIG_THEME 110
+// Data Messages
+#define KEY_CONDITIONS 200
+#define KEY_TEMPERATURE 201
+// Errors
+#define KEY_WEATHER_FAIL 500
 
 // Defaults
+//
 #define DEFAULT_TEMP_UNIT "C"
+#define DEFAULT_THEME 0
 
 // Macros
 #define bit_is_set(value, mask) (value & mask) != 0
@@ -54,7 +61,7 @@ enum {
 
 // App State
 //
-static float s_temp = 0;
+static float s_temp;
 static char s_temp_unit[2];
 static char s_cond[7];
 
@@ -69,12 +76,28 @@ static TextLayer *s_cldr_layer;
 static TextLayer *s_time_layer;
 static TextLayer *s_wthr_layer;
 static GFont s_font;
-static GColor s_color_a;
-static GColor s_color_b;
-static GColor s_color_c;
-static GColor s_color_error;
-static GColor s_color_warn;
-static GColor s_color_info;
+
+#define THEME_COUNT 10
+#define THEME_SIZE 6
+#define theme_primary *s_themes[s_theme][0]
+#define theme_secondary *s_themes[s_theme][1]
+#define theme_tertiary *s_themes[s_theme][2]
+#define theme_error *s_themes[s_theme][3]
+#define theme_warn *s_themes[s_theme][4]
+#define theme_info *s_themes[s_theme][5]
+static int s_theme;
+static GColor *s_themes[THEME_COUNT][THEME_SIZE] = {
+	{ &GColorWhite, &GColorMelon, &GColorRed, &GColorRed, &GColorYellow, &GColorPictonBlue },
+	{ &GColorWhite, &GColorRajah, &GColorOrange, &GColorRed, &GColorYellow, &GColorPictonBlue },
+	{ &GColorWhite, &GColorYellow, &GColorLimerick, &GColorRed, &GColorYellow, &GColorPictonBlue },
+	{ &GColorWhite, &GColorScreaminGreen, &GColorIslamicGreen, &GColorRed, &GColorYellow, &GColorPictonBlue },
+	{ &GColorWhite, &GColorCyan, &GColorTiffanyBlue, &GColorRed, &GColorYellow, &GColorPictonBlue },
+	{ &GColorWhite, &GColorVividCerulean, &GColorBlue, &GColorRed, &GColorYellow, &GColorPictonBlue },
+	{ &GColorWhite, &GColorLavenderIndigo, &GColorPurple, &GColorRed, &GColorYellow, &GColorPictonBlue },
+	{ &GColorWhite, &GColorShockingPink, &GColorFashionMagenta, &GColorRed, &GColorYellow, &GColorPictonBlue },
+	{ &GColorWhite, &GColorLightGray, &GColorDarkGray, &GColorRed, &GColorYellow, &GColorPictonBlue },
+	{ &GColorWhite, &GColorWhite, &GColorWhite, &GColorRed, &GColorYellow, &GColorPictonBlue }
+};
 
 // Messages
 static const char *s_weather_fetching = "FETCHING";
@@ -91,6 +114,7 @@ static void init();
 
 // Display
 //
+static void update_all();
 static void update_batt(BatteryChargeState battery_state);
 static void update_blth(bool bluetooth_state);
 static void update_cldr(struct tm *local_time);

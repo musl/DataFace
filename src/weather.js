@@ -29,40 +29,40 @@
 var owm_url = 'http://api.openweathermap.org/data/2.5/weather';
 
 var xhr = function (url, type, callback) {
-    var req;
-    
-    req = new XMLHttpRequest();
-    req.onload = function () { callback(this.responseText); };
-    req.open(type, url);
-    req.send();
+	var req;
+
+	req = new XMLHttpRequest();
+	req.onload = function () { callback(this.responseText); };
+	req.open(type, url);
+	req.send();
 };
 
 Pebble.addEventListener('ready', function(e) {
-    //console.log('PebbleKit JS ready!');
-    getWeather();
+	//console.log('PebbleKit JS ready!');
+	getWeather();
 });
 
 Pebble.addEventListener('appmessage', function(e) {
-    //console.log('AppMessage received!');
-    getWeather();
+	//console.log('AppMessage received!');
+	getWeather();
 });
 
 function locationSuccess(pos) {
-    var appid, url;
-    
-    appid = localStorage.getItem('KEY_API');
-    if(!appid) return;
-    
-    url = owm_url +
-		  '?lat=' + pos.coords.latitude +
-          '&lon=' + pos.coords.longitude +
-          '&appid=' + appid;
+	var appid, url;
 
-    xhr(url, 'GET',  function(responseText) {
-        var json;
-        
+	appid = localStorage.getItem('KEY_CONFIG_API_KEY');
+	if(!appid) return;
+
+	url = owm_url +
+		'?lat=' + pos.coords.latitude +
+		'&lon=' + pos.coords.longitude +
+		'&appid=' + appid;
+
+	xhr(url, 'GET',  function(responseText) {
+		var json;
+
 		try {
-        	json = JSON.parse(responseText);
+			json = JSON.parse(responseText);
 			Pebble.sendAppMessage({
 				'KEY_TEMPERATURE': Math.round(json.main.temp),
 				'KEY_CONDITIONS': json.weather[0].main.replace(/[aeiou]/ig, '').substring(0, 4)
@@ -71,19 +71,19 @@ function locationSuccess(pos) {
 			console.log(error);
 			Pebble.sendAppMessage({'KEY_WEATHER_FAIL': true});
 		}
-    });
+	});
 }
 
 function locationError(err) {
-    console.log('Error requesting location: ' + err);
+	console.log('Error requesting location: ' + err);
 	Pebble.sendAppMessage({'KEY_WEATHER_FAIL': true});
 }
 
 function getWeather() {
-    navigator.geolocation.getCurrentPosition(
-        locationSuccess,
-        locationError,
-        {timeout: 15000, maximumAge: 60000}
-    );
+	navigator.geolocation.getCurrentPosition(
+		locationSuccess,
+		locationError,
+		{timeout: 15000, maximumAge: 60000}
+	);
 }
 
