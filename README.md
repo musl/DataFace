@@ -16,6 +16,7 @@ Features:
   - Fetches the weather with your [OpenWeatherMap AppID](http://openweathermap.org/appid).
     Remember to sign up and put your AppID into the settings for the watch face.
   - Can display temperature in different units: Fahrenheit, Celcius, and Kelvin.
+  - Color themes.
   - Doesn't drain your battery.
 
 Planned Features:
@@ -23,7 +24,6 @@ Planned Features:
   - Support for Other Weather APIs (Yahoo, wunderground, etc)
   - More pages/windows with moar data like pollution/haze, barametric pressure,
     latitude, longitude, altitude, etc.
-  - Customizable Colors
   - Notification / Timeline indicator
   - AM/PM Indicator
   - Time Zone Indicator
