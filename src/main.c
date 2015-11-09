@@ -177,10 +177,9 @@ static void update_wthr() {
 	static char buff[9];
 	static float temp;
 
-	// TODO maintain a weather state - no key, errored, fetching, fresh, stale
 	if(s_temp <= 0) {
 		text_layer_set_text_color(s_wthr_layer, theme_info);
-		text_layer_set_text(s_wthr_layer, s_weather_fetching);
+		text_layer_set_text(s_wthr_layer, MSG_WTHR_FETCHING);
 		return;
 	}
 
@@ -236,10 +235,8 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
 				fetch_weather();
 				break;
 
-			case KEY_CONFIG_LATITUDE:
-				break;
-
-			case KEY_CONFIG_LONGITUDE:
+			case KEY_CONFIG_LOCATION:
+				fetch_weather();
 				break;
 
 			case KEY_CONFIG_TEMP_UNIT:
@@ -258,9 +255,9 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
 				need_wthr = true;
 				break;
 
-				/*
-				 * App Data
-				 */
+			/*
+			 * App Data
+			 */
 			case KEY_CONDITIONS:
 				strncpy(s_cond, t->value->cstring, sizeof(s_cond));
 				need_wthr = true;
@@ -271,9 +268,9 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
 				need_wthr = true;
 				break;
 
-				/*
-				 * Errors, Exceptional Cases
-				 */
+			/*
+			 * Errors, Exceptional Cases
+			 */
 			case KEY_WEATHER_FAIL:
 				text_layer_set_text(s_wthr_layer, "API KEY?");
 				text_layer_set_text_color(s_wthr_layer, theme_error);
@@ -491,7 +488,6 @@ static void init() {
 	 */
 
 	if(persist_exists(KEY_CONFIG_TEMP_UNIT)) {
-		// TODO validation
 		persist_read_string(KEY_CONFIG_TEMP_UNIT, s_temp_unit, sizeof(s_temp_unit));
 	} else {
 		strncpy(s_temp_unit, DEFAULT_TEMP_UNIT, sizeof(s_temp_unit));    

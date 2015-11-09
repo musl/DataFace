@@ -32,18 +32,19 @@
 
 // AppMessage Keys. Make sure these match those in appinfo.json!
 //
-// Weather Config
-#define KEY_CONFIG_API_KEY 100
-#define KEY_CONFIG_LATITUDE 101
-#define KEY_CONFIG_LONGITUDE 102
-#define KEY_CONFIG_TEMP_UNIT 103
-// Look & Feel Config
-#define KEY_CONFIG_THEME 110
-// Data Messages
-#define KEY_CONDITIONS 200
-#define KEY_TEMPERATURE 201
-// Errors
-#define KEY_WEATHER_FAIL 500
+enum {
+	// Weather Config
+	KEY_CONFIG_API_KEY = 100,
+	KEY_CONFIG_LOCATION,
+	KEY_CONFIG_TEMP_UNIT,
+	// Look & Feel Config
+	KEY_CONFIG_THEME = 110,
+	// Data Messages
+	KEY_CONDITIONS = 200,
+	KEY_TEMPERATURE,
+	// Exceptions and Errors
+	KEY_WEATHER_FAIL = 500
+};
 
 // Defaults
 //
@@ -64,6 +65,12 @@
 static float s_temp;
 static char s_temp_unit[2];
 static char s_cond[7];
+
+// App Messages
+//
+#define MSG_WTHR_API_KEY  "API KEY?"
+#define MSG_WTHR_LOCATION "NO LOC? "
+#define MSG_WTHR_FETCHING "FETCHING"
 
 // App Resources
 //
@@ -98,9 +105,6 @@ static GColor *s_themes[THEME_COUNT][THEME_SIZE] = {
 	{ &GColorWhite, &GColorLightGray, &GColorDarkGray, &GColorRed, &GColorYellow, &GColorPictonBlue },
 	{ &GColorWhite, &GColorWhite, &GColorWhite, &GColorRed, &GColorYellow, &GColorPictonBlue }
 };
-
-// Messages
-static const char *s_weather_fetching = "FETCHING";
 
 /*
  * If you care enough to organize everything for an app with such a defined

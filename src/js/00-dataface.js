@@ -26,64 +26,35 @@
  * THE SOFTWARE.
  */
 
-var owm_url = 'http://api.openweathermap.org/data/2.5/weather';
 
-var xhr = function (url, type, callback) {
+// App Namespace
+var DataFace = {};
+
+
+// Utility for checking for emptyness.
+//
+function isEmpty(obj) {
+	if (obj === null) return true;
+	if (obj.length === 0) return true;
+	if (obj.length > 0) return false;
+
+	for (var key in obj) {
+		if (hasOwnProperty.call(obj, key)) return false;
+	}
+
+	return true;
+}
+
+
+// Perform an asynchronous web request.
+//
+function xhr(url, type, callback) {
 	var req;
 
 	req = new XMLHttpRequest();
 	req.onload = function () { callback(this.responseText); };
 	req.open(type, url);
 	req.send();
-};
-
-Pebble.addEventListener('ready', function(e) {
-	//console.log('PebbleKit JS ready!');
-	getWeather();
-});
-
-Pebble.addEventListener('appmessage', function(e) {
-	//console.log('AppMessage received!');
-	getWeather();
-});
-
-function locationSuccess(pos) {
-	var appid, url;
-
-	appid = localStorage.getItem('KEY_CONFIG_API_KEY');
-	if(!appid) return;
-
-	url = owm_url +
-		'?lat=' + pos.coords.latitude +
-		'&lon=' + pos.coords.longitude +
-		'&appid=' + appid;
-
-	xhr(url, 'GET',  function(responseText) {
-		var json;
-
-		try {
-			json = JSON.parse(responseText);
-			Pebble.sendAppMessage({
-				'KEY_TEMPERATURE': Math.round(json.main.temp),
-				'KEY_CONDITIONS': json.weather[0].main.replace(/[aeiou]/ig, '').substring(0, 4)
-			});
-		} catch(error) {
-			console.log(error);
-			Pebble.sendAppMessage({'KEY_WEATHER_FAIL': true});
-		}
-	});
 }
 
-function locationError(err) {
-	console.log('Error requesting location: ' + err);
-	Pebble.sendAppMessage({'KEY_WEATHER_FAIL': true});
-}
-
-function getWeather() {
-	navigator.geolocation.getCurrentPosition(
-		locationSuccess,
-		locationError,
-		{timeout: 15000, maximumAge: 60000}
-	);
-}
 
