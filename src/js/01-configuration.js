@@ -31,7 +31,7 @@ DataFace.Config = (function(){
 	var keys, self, url;
 	
 	// The URL for the configuration page.
-   	url = 'https://hix.io/misc/dataface/';
+   	url = 'https://musl.github.com/DataFace/config/';
 
 	// Stuff we're going to put in local storage on the phone.
 	//
