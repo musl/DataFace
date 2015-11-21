@@ -7,32 +7,39 @@
 # logs directly from the device. Nifty. YMMV.
 #
 
-# Declare tasks that don't result in something that make can check for
-# freshness.
-.PHONY: all check_env clean install logs
+ifndef PEBBLE_EMULATOR
+PEBBLE_EMULATOR := basalt
+endif
 
-# A default list of things to do when no arguments are given.
-all: logs
+ifndef PEBBLE_PHONE
+ifndef PEBBLE_CLOUDPEBBLE
+PEBBLE_FLAGS := --logs --emulator $(PEBBLE_EMULATOR)
+endif
+endif
 
 ########################################################################
 # Tasks
 ########################################################################
 
-check_env:
-ifndef PEBBLE_PHONE
-	$(error The environment variable PEBBLE_PHONE is not defined.\
-		Please set it to the hostname or IP address for your phone)
-endif
+# Declare tasks that don't result in something that make can check for
+# freshness.
+.PHONY: all check_env clean install logs
+
+# A default list of things to do when no arguments are given.
+all: clean logs
 
 clean:
-	pebble clean
+	pebble $@
 
-pbw:
-	pebble build
+build:
+	pebble $@
 
-install: check_env pbw
-	pebble install
+install: build
+	pebble $@ $(PEBBLE_FLAGS)
 
-logs: check_env install
-	pebble logs
+logs: install
+	pebble $@ $(PEBBLE_FLAGS)
+
+lint:
+	splint -type -paramuse -I /usr/local/Cellar/pebble-sdk/3.6.2/Pebble/basalt/include/ src/main.*
 
