@@ -273,7 +273,6 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
 				break;
 
 		}
-		free(t);
 		t = dict_read_next(iterator);
 	}
 

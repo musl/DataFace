@@ -40,6 +40,3 @@ install: build
 logs: install
 	pebble $@ $(PEBBLE_FLAGS)
 
-lint:
-	splint -type -paramuse -I /usr/local/Cellar/pebble-sdk/3.6.2/Pebble/basalt/include/ src/main.*
-
