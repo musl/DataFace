@@ -1,20 +1,3 @@
-
-html, body {
-	font-family: sans-serif;
-}
-
-body {
-	padding: 2em;
-	background-color: #222;
-	color: #ccc;
-}
-
 h1 {
-	font-size: 14pt;
+	margin: 0.5em 0.25em !important;
 }
-
-input.api_key,
-input.location {
-	width: 100%;
-}
-
