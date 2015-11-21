@@ -33,15 +33,18 @@ Build Instructions
 ---
 You'll need the [pebble-sdk](http://developer.getpebble.com/sdk/) installed.
 
-For a one-stop-shop - clean, build, install, and tail the device logs,
-run the following:
+The Makefile for the project streamlines the process of cleaning, building, installing, and tailing the device logs.
 
-  1. Point the `pebble` tool to your phone's hostname or IP address.
-    - For bash, zsh, etc run:
-      `export PEBBLE_PHONE=<hostname or address>`
-    - For csh, tcsh, etc run:
-      `setenv PEBBLE_PHONE <hostname or address>`
-  1. Run `make` or `gmake`.
+To install the watch face on an emulator:
+  1. Run: `make`
+
+To install the watch face directly on a watch:
+  1. Make sure the developer connection is turned on and setup for the phone you want to install to.
+  1. Tell the pebble tool where your phone is. You'll only have to do this once per new terminal session.
+     Do either of the following:
+    - Set the environment variable `PEBBLE_PHONE` to the IP address or hostname for your phone.
+    - Set the environment variable `PEBBLE_CLOUDPEBBLE` and use `pebble login` to sign in.
+  1. Run: `make`
 
 Read the [Makefile](Makefile) for more info.
 
