@@ -27,6 +27,7 @@
  */
 
 DataFace.Weather = (function() {
+
 	var owm_url, request, response, eelf;
 
 	owm_url = 'http://api.openweathermap.org/data/2.5/weather';
@@ -85,10 +86,12 @@ DataFace.Weather = (function() {
 	Pebble.addEventListener('ready', function(e) {
 		self.get();
 	});
+
 	Pebble.addEventListener('appmessage', function(e) {
 		if(e.payload[0] == 0) self.get();
 	});
 
 	return self;
+
 })();
 

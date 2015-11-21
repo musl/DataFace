@@ -28,7 +28,10 @@
 
 
 // App Namespace
-var DataFace = {};
+//
+var DataFace = {
+	banner: "DataFace - Mike Hix <m@hix.io>"
+};
 
 
 // Utility for checking for emptyness.
@@ -56,5 +59,12 @@ function xhr(url, type, callback) {
 	req.open(type, url);
 	req.send();
 }
+
+
+// Just in case anyone's watching.
+//
+Pebble.addEventListener('webviewclosed', function() {
+	console.log(DataFace.banner);
+});
 
 

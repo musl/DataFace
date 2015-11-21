@@ -27,6 +27,7 @@
  */
 
 DataFace.Config = (function(){
+
 	var keys, self, url;
 	
 	// The URL for the configuration page.
@@ -97,5 +98,6 @@ DataFace.Config = (function(){
 	Pebble.addEventListener('webviewclosed', self.close);
 
 	return self;
+
 })();
 

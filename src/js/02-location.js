@@ -27,6 +27,7 @@
  */
 
 DataFace.Location = (function() {
+
 	var self;
 
 	self = {
@@ -51,5 +52,6 @@ DataFace.Location = (function() {
 	};
 
 	return self;
+
 })();
 
