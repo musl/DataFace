@@ -40,10 +40,10 @@
  */
 static void update_all() {
 
-	BatteryChargeState battery_state;
-	bool bluetooth_state;
-	time_t gmt;
-	struct tm *local_time;
+	static BatteryChargeState battery_state;
+	static bool bluetooth_state;
+	static time_t gmt;
+	static struct tm *local_time;
 
 	// Prepare to update the UI manually.
 	//
@@ -81,7 +81,7 @@ static void update_batt(BatteryChargeState battery_state) {
 		state = '%';    
 	}
 
-	charge = battery_state.charge_percent;
+	charge = (int) battery_state.charge_percent;
 	if(charge > 20) {
 		text_layer_set_text_color(s_batt_layer, theme_tertiary);
 	} else if(charge > 10) {
@@ -92,7 +92,7 @@ static void update_batt(BatteryChargeState battery_state) {
 
 	// Shared row with the bluetooth status.
 	//
-	snprintf(buff, sizeof(buff), "    %3d%c", charge, state);
+	(void) snprintf(buff, sizeof(buff), "    %3d%c", charge, state);
 	text_layer_set_text(s_batt_layer, buff);
 
 }
@@ -103,21 +103,13 @@ static void update_batt(BatteryChargeState battery_state) {
  */
 static void update_blth(bool bluetooth_state) {
 
-	static char buff[9];
-	static char *state;
-
 	if(bluetooth_state) {
-		state = "bt";
+		text_layer_set_text(s_blth_layer, "bt       ");
 		text_layer_set_text_color(s_blth_layer, theme_tertiary);
 	} else {
-		state = "nc";
+		text_layer_set_text(s_blth_layer, "nc       ");
 		text_layer_set_text_color(s_blth_layer, theme_error);
 	}
-
-	// Shared row with the battery status.
-	//
-	snprintf(buff, sizeof(buff), "%2s      ", state);
-	text_layer_set_text(s_blth_layer, buff);
 
 }
 
@@ -129,7 +121,7 @@ static void update_cldr(struct tm *local_time) {
 
 	static char buff[9];
 
-	strftime(buff, sizeof(buff), "ww%U %a", local_time);
+	(void) strftime(buff, sizeof(buff), "ww%U %a", local_time);
 	text_layer_set_text_color(s_cldr_layer, theme_tertiary);
 	text_layer_set_text(s_cldr_layer, buff);
 
@@ -143,7 +135,7 @@ static void update_date(struct tm *local_time) {
 
 	static char buff[9];
 
-	strftime(buff, sizeof(buff), "%Y%m%d", local_time);
+	(void) strftime(buff, sizeof(buff), "%Y%m%d", local_time);
 	text_layer_set_text_color(s_date_layer, theme_secondary);
 	text_layer_set_text(s_date_layer, buff);
 
@@ -158,9 +150,9 @@ static void update_time(struct tm *local_time) {
 	static char buff[9];
 
 	if(clock_is_24h_style() == true) {
-		strftime(buff, sizeof(buff), "%H:%M:%S", local_time);
+		(void) strftime(buff, sizeof(buff), "%H:%M:%S", local_time);
 	} else {
-		strftime(buff, sizeof(buff), "%I:%M:%S", local_time);
+		(void) strftime(buff, sizeof(buff), "%I:%M:%S", local_time);
 	}
 
 	text_layer_set_text_color(s_time_layer, theme_primary);
@@ -197,7 +189,7 @@ static void update_wthr() {
 			return;
 	}
 
-	snprintf(buff, sizeof(buff), "%-4s%3d%1c", s_cond, (int)temp, s_temp_unit[0]);
+	(void) snprintf(buff, sizeof(buff), "%-4s%3d%1c", s_cond, (int)temp, s_temp_unit[0]);
 	text_layer_set_text_color(s_wthr_layer, theme_secondary);
 	text_layer_set_text(s_wthr_layer, buff);
 
@@ -242,7 +234,7 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
 			case KEY_CONFIG_TEMP_UNIT:
 				strncpy(s_temp_unit, t->value->cstring, sizeof(s_temp_unit));
 				// TODO: validation
-				persist_write_string(KEY_CONFIG_TEMP_UNIT, s_temp_unit);
+				(void) persist_write_string(KEY_CONFIG_TEMP_UNIT, s_temp_unit);
 				need_wthr = true;
 				break;
 
@@ -250,7 +242,7 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
 				theme = atoi(t->value->cstring);
 				if(theme < 0 || theme >= THEME_COUNT) break;
 				s_theme = theme;
-				persist_write_int(KEY_CONFIG_THEME, s_theme);
+				(void) persist_write_int(KEY_CONFIG_THEME, s_theme);
 				need_refresh = true;
 				need_wthr = true;
 				break;
@@ -281,6 +273,7 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
 				break;
 
 		}
+		free(t);
 		t = dict_read_next(iterator);
 	}
 
@@ -533,9 +526,15 @@ static void init() {
 	// Listen for messages so that the weather and configuration get
 	// updated.
 	//
-	app_message_open(
+	/*
+	app_message_open( 
 			app_message_inbox_size_maximum(),
 			app_message_outbox_size_maximum());
+	*/
+
+	// Let's not be horridly wasteful. This watchface only sends short
+	// strings and integers in dictionaries.
+	app_message_open( 256, 256 );
 
 }
 
