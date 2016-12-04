@@ -28,17 +28,18 @@
 
 DataFace.Weather = (function() {
 
-	var owm_url, request, response, eelf;
-
-	owm_url = 'http://api.openweathermap.org/data/2.5/weather';
+	var request, response, eelf;
 
 	request = function(lat, lon) {
 		var appid, url;
 
+		url = localStorage.getItem('KEY_CONFIG_API_URL');
+		if(!url) return;
+
 		appid = localStorage.getItem('KEY_CONFIG_API_KEY');
 		if(!appid) return;
 
-		url = owm_url + '?lat=' + lat + '&lon=' + lon + '&appid=' + appid;
+		url += '?lat=' + lat + '&lon=' + lon + '&appid=' + appid;
 
 		//console.log('URL: ' + url);
 
