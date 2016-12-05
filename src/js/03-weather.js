@@ -214,10 +214,10 @@ DataFace.Weather = (function() {
 			//console.log(api, provider.url, location);
 
 			if(location.length == 2) {
-				provider.fetch({lat: location[0].trim(), lon: location[1].trim(), key: key}, send_message);
+				provider.fetch({lat: ('' + location[0]).trim(), lon: ('' + location[1]).trim(), key: key}, send_message);
 			} else {
 				DataFace.Location.get(function(pos) {
-					provider.fetch({lat: location[0].trim(), lon: location[1].trim(), key: key}, send_message);
+					provider.fetch({lat: pos.coords.latitude, lon: pos.coords.longitude, key: key}, send_message);
 				});
 			}
 		},
