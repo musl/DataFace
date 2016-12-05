@@ -28,88 +28,95 @@
 
 
 DataFace.WeatherProvider = function(impl) {
-  var common, self;
+	var common, self;
 
-  self = this;
+	self = this;
 
-  common = {
-    method: 'GET',
-    url_template: '',
-    url: function(params) {
-      var url;
+	common = {
+		method: 'GET',
+		url_template: '',
+		url: function(params) {
+			var url;
 
-      url = self.impl.url_template;
-      for (var key in params) {
-        if (params.hasOwnProperty(key)) {
-          url = url.replace('{' + key + '}', params[key]);
-        }
-      }
+			url = self.impl.url_template;
+			for (var key in params) {
+				if (params.hasOwnProperty(key)) {
+					url = url.replace('{' + key + '}', params[key]);
+				}
+			}
 
-      console.log('url: ' + url);
-      return url;
-    },
-    fetch: function(params, fn) {
-      console.log('fetch: ' + JSON.stringify(params));
-      xhr(self.impl.url(params), self.impl.method, self.impl.process(fn));
-    },
-    process: function(fn) {
-      return function(body) {
-        console.log('process: ' + body);
-        fn(self.impl.unpack(body));
-      }
-    },
-    unpack: function(body) {
-      return body;
-    }
-  };
+			console.log('url: ' + url);
+			return url;
+		},
+		fetch: function(params, fn) {
+			console.log('fetch: ' + JSON.stringify(params));
+			xhr(self.impl.url(params), self.impl.method, self.impl.process(fn));
+		},
+		process: function(fn) {
+			return function(body) {
+				console.log('process: ' + body);
+				fn(self.impl.unpack(body));
+			}
+		},
+		unpack: function(body) {
+			return body;
+		}
+	};
 
-  this.impl = Object.assign({}, common, impl);
+	// Apparently Object.assign isn't a thing in pebblejs...
+	// this.impl = Object.assign({}, common, impl);
+	
+	// ACK, BY HAND, YOU HEATHENS
+	this.impl = common;
+	if(impl.url_template) this.impl.url_template = impl.url_template;
+	if(impl.unpack) this.impl.unpack = impl.unpack;
+	if(impl.method) this.impl.method = impl.method;
 };
 
 DataFace.WeatherProvider.prototype.fetch = function(params, fn) {
-  return this.impl.fetch(params, fn);
+	return this.impl.fetch(params, fn);
 };
 
 DataFace.WeatherProviders = {
-  dark_skies: new DataFace.WeatherProvider({
-    // Requires HTTPS
-    url_template: 'https://api.darksky.net/forecast/{key}/{lat},{lon}',
-    unpack: function(body) {
-      var json = JSON.parse(body);
-      var obj = {
-        'KEY_TEMPERATURE': Math.round((parseFloat(json['currently']['temperature']) - 32.0) * 5.0 / 9.0 + 273.15),
-        'KEY_CONDITIONS': json['currently']['summary'].replace(/[aeiouyl ]/ig, '').substring(0, 4)
-      };
+	dark_skies: new DataFace.WeatherProvider({
+		// Requires HTTPS
+		url_template: 'https://api.darksky.net/forecast/{key}/{lat},{lon}',
+		unpack: function(body) {
+			var json = JSON.parse(body);
+			var obj = {
+				'KEY_TEMPERATURE': Math.round((parseFloat(json['currently']['temperature']) - 32.0) * 5.0 / 9.0 + 273.15),
+				'KEY_CONDITIONS': json['currently']['summary'].replace(/[aeiouyl ]/ig, '').substring(0, 4)
+			};
 
-      return obj;
-    },
-  }),
-  open_weather_map: new DataFace.WeatherProvider({
-    // Disallows HTTPS
-    url_template: 'http://api.openweathermap.org/data/2.5/weather/?lat={lat}&lon={lon}&appid={key}',
-    unpack: function(body) {
-      var json = JSON.parse(body);
-      var obj = {
-        'KEY_TEMPERATURE': Math.round(json.main.temp),
-        'KEY_CONDITIONS': json.weather[0].main.replace(/[aeiouyl ]/ig, '').substring(0, 4),
-      };
+			return obj;
+		},
+	}),
+	open_weather_map: new DataFace.WeatherProvider({
+		// Disallows HTTPS
+		url_template: 'http://api.openweathermap.org/data/2.5/weather/?lat={lat}&lon={lon}&appid={key}',
+		unpack: function(body) {
+			var json = JSON.parse(body);
+			var obj = {
+				'KEY_TEMPERATURE': Math.round(json.main.temp),
+				'KEY_CONDITIONS': json.weather[0].main.replace(/[aeiouyl ]/ig, '').substring(0, 4),
+			};
 
-      return obj;
-    },
-  }),
-  weather_underground: new DataFace.WeatherProvider({
-    // Optional HTTPS
-    url_template: 'https://api.wunderground.com/api/{key}/conditions/q/{lat},{lon}.json',
-    unpack: function(body) {
-      var json = JSON.parse(body);
-      var obj = {
-        'KEY_TEMPERATURE': Math.round((parseFloat(json['current_observation']['temp_f']) - 32.0) * 5.0 / 9.0 + 273.15),
-        'KEY_CONDITIONS': json['current_observation']['weather'].replace(/[aeiouyl ]/ig, '').substring(0, 4)
-      };
+			return obj;
+		},
+	}),
+	weather_underground: new DataFace.WeatherProvider({
+		// Optional HTTPS
+		url_template: 'https://api.wunderground.com/api/{key}/conditions/q/{lat},{lon}.json',
+		unpack: function(body) {
+			var json = JSON.parse(body);
+			var obj = {
+				'KEY_TEMPERATURE': Math.round((parseFloat(json['current_observation']['temp_f']) - 32.0) * 5.0 / 9.0 + 273.15),
+				'KEY_CONDITIONS': json['current_observation']['weather'].replace(/[aeiouyl ]/ig, '').substring(0, 4)
+			};
 
-      return obj;
-    },
-  }),
+			return obj;
+		},
+	}),
 };
 
 DataFace.Weather = (function() {
@@ -118,7 +125,7 @@ DataFace.Weather = (function() {
 
 	send_message = function(message) {
 		//console.log("Body: " + JSON.stringify(body));
-		
+
 		try {
 			Pebble.sendAppMessage(message);
 		} catch(error) {
