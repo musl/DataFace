@@ -65,7 +65,7 @@ DataFace.WeatherProvider = function(impl) {
 
 	// Apparently Object.assign isn't a thing in pebblejs...
 	// this.impl = Object.assign({}, common, impl);
-	
+
 	// ACK, BY HAND, YOU HEATHENS
 	this.impl = common;
 	if(impl.url_template) this.impl.url_template = impl.url_template;
@@ -77,6 +77,29 @@ DataFace.WeatherProvider.prototype.fetch = function(params, fn) {
 	return this.impl.fetch(params, fn);
 };
 
+DataFace.squash_summary = function(str) {
+	var s, t;
+
+	s = str.replace(/[aeiouyg]/ig, '');
+	s = s.replace(/[_:\t\-\.]/ig, ' ').trim();
+	s = s.split(' ', 2);
+
+	switch(s.length) {
+		case 1:
+			s = s[0].substring(0, 4);
+			break;
+		case 2:
+			s = s[0].substring(0, 3) + s[1].substring(0, 1);
+			break;
+		default:
+			s = '????';
+			break;
+	}
+
+	console.log(str + ' -> ' + s);
+	return s;
+};
+
 DataFace.WeatherProviders = {
 	dark_sky: new DataFace.WeatherProvider({
 		// Requires HTTPS
@@ -86,7 +109,7 @@ DataFace.WeatherProviders = {
 			var json = JSON.parse(body);
 			var obj = {
 				'KEY_TEMPERATURE': Math.round((parseFloat(json['currently']['temperature']) - 32.0) * 5.0 / 9.0 + 273.15),
-				'KEY_CONDITIONS': json['currently']['summary'].replace(/[aeiouyl ]/ig, '').substring(0, 4)
+				'KEY_CONDITIONS': DataFace.squash_summary(json['currently']['summary']),
 			};
 
 			return obj;
@@ -100,7 +123,7 @@ DataFace.WeatherProviders = {
 			var json = JSON.parse(body);
 			var obj = {
 				'KEY_TEMPERATURE': Math.round(json.main.temp),
-				'KEY_CONDITIONS': json.weather[0].main.replace(/[aeiouyl ]/ig, '').substring(0, 4),
+				'KEY_CONDITIONS': DataFace.squash_summary(json.weather[0].main),
 			};
 
 			return obj;
@@ -114,7 +137,7 @@ DataFace.WeatherProviders = {
 			var json = JSON.parse(body);
 			var obj = {
 				'KEY_TEMPERATURE': Math.round((parseFloat(json['current_observation']['temp_f']) - 32.0) * 5.0 / 9.0 + 273.15),
-				'KEY_CONDITIONS': json['current_observation']['weather'].replace(/[aeiouyl ]/ig, '').substring(0, 4)
+				'KEY_CONDITIONS': DataFace.squash_summary(json['current_observation']['weather']),
 			};
 
 			return obj;
