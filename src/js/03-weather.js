@@ -45,16 +45,16 @@ DataFace.WeatherProvider = function(impl) {
 				}
 			}
 
-			console.log('url: ' + url);
+			//console.log('url: ' + url);
 			return url;
 		},
 		fetch: function(params, fn) {
-			console.log('fetch: ' + JSON.stringify(params));
+			//console.log('fetch: ' + JSON.stringify(params));
 			xhr(self.impl.url(params), self.impl.method, self.impl.process(fn));
 		},
 		process: function(fn) {
 			return function(body) {
-				console.log('process: ' + body);
+				//console.log('process: ' + body);
 				fn(self.impl.unpack(body));
 			}
 		},
@@ -78,11 +78,11 @@ DataFace.WeatherProvider.prototype.fetch = function(params, fn) {
 };
 
 DataFace.WeatherProviders = {
-	dark_skies: new DataFace.WeatherProvider({
+	dark_sky: new DataFace.WeatherProvider({
 		// Requires HTTPS
 		url_template: 'https://api.darksky.net/forecast/{key}/{lat},{lon}',
 		unpack: function(body) {
-			console.log('ds unpack');
+			//console.log('ds unpack');
 			var json = JSON.parse(body);
 			var obj = {
 				'KEY_TEMPERATURE': Math.round((parseFloat(json['currently']['temperature']) - 32.0) * 5.0 / 9.0 + 273.15),
@@ -96,7 +96,7 @@ DataFace.WeatherProviders = {
 		// Disallows HTTPS
 		url_template: 'http://api.openweathermap.org/data/2.5/weather/?lat={lat}&lon={lon}&appid={key}',
 		unpack: function(body) {
-			console.log('ds unpack');
+			//console.log('ds unpack');
 			var json = JSON.parse(body);
 			var obj = {
 				'KEY_TEMPERATURE': Math.round(json.main.temp),
@@ -110,7 +110,7 @@ DataFace.WeatherProviders = {
 		// Optional HTTPS
 		url_template: 'https://api.wunderground.com/api/{key}/conditions/q/{lat},{lon}.json',
 		unpack: function(body) {
-			console.log('ds unpack');
+			//console.log('ds unpack');
 			var json = JSON.parse(body);
 			var obj = {
 				'KEY_TEMPERATURE': Math.round((parseFloat(json['current_observation']['temp_f']) - 32.0) * 5.0 / 9.0 + 273.15),
@@ -161,7 +161,7 @@ DataFace.Weather = (function() {
 			location = localStorage.getItem('KEY_CONFIG_LOCATION') || "";
 			location = location.split(',');
 
-			console.log(api, provider.url, location);
+			//console.log(api, provider.url, location);
 
 			if(location.length == 2) {
 				provider.fetch({lat: location[0].trim(), lon: location[1].trim(), key: key}, send_message);
@@ -174,12 +174,12 @@ DataFace.Weather = (function() {
 	};
 
 	Pebble.addEventListener('ready', function(e) {
-		console.log('ready');
+		//console.log('ready');
 		self.get();
 	});
 
 	Pebble.addEventListener('appmessage', function(e) {
-		console.log('appmessage: ' + e.payload[0]);
+		//console.log('appmessage: ' + e.payload[0]);
 		if(e.payload[0] == 0) self.get();
 	});
 
