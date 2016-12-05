@@ -13,16 +13,20 @@ Features:
     - 12 or 24 hour time (HH:MM:SS, respects watch settings)
     - Weather (Current Conditions abbreviated, Temperature)
     - Bluetooth Status (bt = connected, nc = not connected), Battery Status
-  - Fetches the weather with your [OpenWeatherMap AppID](http://openweathermap.org/appid).
-    Remember to sign up and put your AppID into the settings for the watch face.
+  - Supports three popular weather APIs:
+    - [Weather Underground](https://www.wunderground.com/member/registration)
+    - [Open Weather Maps](https://home.openweathermap.org/users/sign_up)
+    - [Dark Sky (forecast.io)](https://darksky.net/dev/register)
+    Make sure to sign up and get your API key to put into the
+    watchface's settings or it won't show weather.
   - Can display temperature in different units: Fahrenheit, Celcius, and Kelvin.
   - Color themes.
   - Doesn't drain your battery.
+  - Doesn't leak memory as far as I've been able to test it.
 
 Planned Features:
 ---
-  - Support for Other Weather APIs (Yahoo, wunderground, etc)
-  - More pages/windows with moar data like pollution/haze, barametric pressure,
+  - Pages/windows with moar data like pollution/haze, barametric pressure,
     latitude, longitude, altitude, etc.
   - Notification / Timeline indicator
   - AM/PM Indicator
