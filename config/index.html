@@ -59,7 +59,17 @@
 					</select>
 				</label>
 				<label class="item">
-					OpenWeatherMap API Key:
+					Weather API:
+					<div class="item-input-wrapper">
+            <select id="KEY_CONFIG_API" class="item-select">
+              <option value="open_weather_map"  class="item-select-option">Open Weather Map</option>
+              <option value="weather_underground" class="item-select-option">Weather Underground</option>
+              <option value="dark_sky" class="item-select-option">Dark Sky (forecast.io)</option>
+            </select>
+					</div>
+				</label>
+				<label class="item">
+					API Key:
 					<div class="item-input-wrapper">
 						<input id="KEY_CONFIG_API_KEY" type="text" value="" class="item-input">
 					</div>
