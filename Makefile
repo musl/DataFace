@@ -23,7 +23,7 @@ endif
 
 # Declare tasks that don't result in something that make can check for
 # freshness.
-.PHONY: all check_env clean install logs
+.PHONY: all build clean install logs
 
 # A default list of things to do when no arguments are given.
 all: clean logs
