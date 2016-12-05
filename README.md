@@ -17,6 +17,7 @@ Features:
     - [Weather Underground](https://www.wunderground.com/member/registration)
     - [Open Weather Maps](https://home.openweathermap.org/users/sign_up)
     - [Dark Sky (forecast.io)](https://darksky.net/dev/register)
+
     Make sure to sign up and get your API key to put into the
     watchface's settings or it won't show weather.
   - Can display temperature in different units: Fahrenheit, Celcius, and Kelvin.
