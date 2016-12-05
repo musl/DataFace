@@ -33,9 +33,10 @@ DataFace.Config = (function(){
 	// The URL for the configuration page.
    	url = 'https://musl.github.io/DataFace/config/';
 
-	// Stuff we're going to put in local storage on the phone.
+	// Configuration keys that we're managing with the config page.
 	//
 	keys = [
+		'KEY_CONFIG_API',
 		'KEY_CONFIG_API_KEY',
 		'KEY_CONFIG_TEMP_UNIT',
 		'KEY_CONFIG_LOCATION',

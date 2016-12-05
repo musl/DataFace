@@ -26,68 +26,183 @@
  * THE SOFTWARE.
  */
 
-DataFace.Weather = (function() {
 
-	var owm_url, request, response, eelf;
+DataFace.WeatherProvider = function(impl) {
+	var common, self;
 
-	owm_url = 'http://api.openweathermap.org/data/2.5/weather';
+	self = this;
 
-	request = function(lat, lon) {
-		var appid, url;
+	common = {
+		method: 'GET',
+		url_template: '',
+		url: function(params) {
+			var url;
 
-		appid = localStorage.getItem('KEY_CONFIG_API_KEY');
-		if(!appid) return;
+			url = self.impl.url_template;
+			for (var key in params) {
+				if (params.hasOwnProperty(key)) {
+					url = url.replace('{' + key + '}', params[key]);
+				}
+			}
 
-		url = owm_url + '?lat=' + lat + '&lon=' + lon + '&appid=' + appid;
-
-		//console.log('URL: ' + url);
-
-		xhr(url, 'GET', response);
+			//console.log('url: ' + url);
+			return url;
+		},
+		fetch: function(params, fn) {
+			//console.log('fetch: ' + JSON.stringify(params));
+			xhr(self.impl.url(params), self.impl.method, self.impl.process(fn));
+		},
+		process: function(fn) {
+			return function(body) {
+				//console.log('process: ' + body);
+				fn(self.impl.unpack(body));
+			}
+		},
+		unpack: function(body) {
+			return body;
+		}
 	};
 
-	response = function(body) {
+	// Apparently Object.assign isn't a thing in pebblejs...
+	// this.impl = Object.assign({}, common, impl);
 
-		//console.log("Body: " + body);
-		
-		try {
+	// ACK, BY HAND, YOU HEATHENS
+	this.impl = common;
+	if(impl.url_template) this.impl.url_template = impl.url_template;
+	if(impl.unpack) this.impl.unpack = impl.unpack;
+	if(impl.method) this.impl.method = impl.method;
+};
+
+DataFace.WeatherProvider.prototype.fetch = function(params, fn) {
+	return this.impl.fetch(params, fn);
+};
+
+DataFace.squash_summary = function(str) {
+	var s, t;
+
+	s = str.replace(/[aeiouyg]/ig, '');
+	s = s.replace(/[_:\t\-\.]/ig, ' ').trim();
+	s = s.split(' ', 2);
+
+	switch(s.length) {
+		case 1:
+			s = s[0].substring(0, 4);
+			break;
+		case 2:
+			s = s[0].substring(0, 3) + s[1].substring(0, 1);
+			break;
+		default:
+			s = '????';
+			break;
+	}
+
+	console.log(str + ' -> ' + s);
+	return s;
+};
+
+DataFace.WeatherProviders = {
+	dark_sky: new DataFace.WeatherProvider({
+		// Requires HTTPS
+		url_template: 'https://api.darksky.net/forecast/{key}/{lat},{lon}',
+		unpack: function(body) {
+			//console.log('ds unpack');
 			var json = JSON.parse(body);
-			Pebble.sendAppMessage({
+			var obj = {
+				'KEY_TEMPERATURE': Math.round((parseFloat(json['currently']['temperature']) - 32.0) * 5.0 / 9.0 + 273.15),
+				'KEY_CONDITIONS': DataFace.squash_summary(json['currently']['summary']),
+			};
+
+			return obj;
+		},
+	}),
+	open_weather_map: new DataFace.WeatherProvider({
+		// Disallows HTTPS
+		url_template: 'http://api.openweathermap.org/data/2.5/weather/?lat={lat}&lon={lon}&appid={key}',
+		unpack: function(body) {
+			//console.log('ds unpack');
+			var json = JSON.parse(body);
+			var obj = {
 				'KEY_TEMPERATURE': Math.round(json.main.temp),
-				'KEY_CONDITIONS': json.weather[0].main.replace(/[aeiou]/ig, '').substring(0, 4)
-			});
+				'KEY_CONDITIONS': DataFace.squash_summary(json.weather[0].main),
+			};
+
+			return obj;
+		},
+	}),
+	weather_underground: new DataFace.WeatherProvider({
+		// Optional HTTPS
+		url_template: 'https://api.wunderground.com/api/{key}/conditions/q/{lat},{lon}.json',
+		unpack: function(body) {
+			//console.log('ds unpack');
+			var json = JSON.parse(body);
+			var obj = {
+				'KEY_TEMPERATURE': Math.round((parseFloat(json['current_observation']['temp_f']) - 32.0) * 5.0 / 9.0 + 273.15),
+				'KEY_CONDITIONS': DataFace.squash_summary(json['current_observation']['weather']),
+			};
+
+			return obj;
+		},
+	}),
+};
+
+DataFace.Weather = (function() {
+
+	var send_message, self;
+
+	send_message = function(message) {
+		//console.log("Body: " + JSON.stringify(body));
+
+		try {
+			Pebble.sendAppMessage(message);
 		} catch(error) {
-			Pebble.sendAppMessage({
-				'KEY_WEATHER_FAIL': true
-			});
+			Pebble.sendAppMessage({ 'KEY_WEATHER_FAIL': true });
 		}
 	};
 
 	self = {
 		get: function() {
-			var location;
+			var api, key, location, obj, provider;
+
+			api = localStorage.getItem('KEY_CONFIG_API');
+			if(!api) {
+				console.log('Unable to load KEY_CONFIG_API');
+				return
+			}
+
+			provider = DataFace.WeatherProviders[api];
+			if(!provider) {
+				console.log('Unable find provider for: ' + api);
+				return
+			}
+
+			key = localStorage.getItem('KEY_CONFIG_API_KEY');
+			if(!key) {
+				console.log('Unable to load KEY_CONFIG_API_KEY');
+				return
+			}
 
 			location = localStorage.getItem('KEY_CONFIG_LOCATION') || "";
 			location = location.split(',');
 
-			//console.log("Location: " + location);
+			//console.log(api, provider.url, location);
 
 			if(location.length == 2) {
-				request(location[0].trim(), location[1].trim());
+				provider.fetch({lat: location[0].trim(), lon: location[1].trim(), key: key}, send_message);
 			} else {
 				DataFace.Location.get(function(pos) {
-					request(pos.coords.latitude, pos.coords.longitude);
+					provider.fetch({lat: location[0].trim(), lon: location[1].trim(), key: key}, send_message);
 				});
 			}
 		},
 	};
 
-	// Hook up events.
-	//
 	Pebble.addEventListener('ready', function(e) {
+		//console.log('ready');
 		self.get();
 	});
 
 	Pebble.addEventListener('appmessage', function(e) {
+		//console.log('appmessage: ' + e.payload[0]);
 		if(e.payload[0] == 0) self.get();
 	});
 

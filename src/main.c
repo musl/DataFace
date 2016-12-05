@@ -1,6 +1,6 @@
 // vim: set nosta noet ts=4 sw=4 ft=c:
-/*
- * DataFace
+/* DataFace
+ *
  * A functional, minimal watchface for hacker-ish types.
  *
  * The MIT License (MIT)
@@ -223,6 +223,10 @@ static void inbox_cb(DictionaryIterator *iterator, void *context) {
 			/*
 			 * App Config
 			 */
+			case KEY_CONFIG_API:
+				fetch_weather();
+				break;
+
 			case KEY_CONFIG_API_KEY:
 				fetch_weather();
 				break;
