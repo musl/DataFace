@@ -37,6 +37,7 @@ enum {
 	KEY_CONFIG_API_KEY = 100,
 	KEY_CONFIG_LOCATION,
 	KEY_CONFIG_TEMP_UNIT,
+	KEY_CONFIG_API,
 	// Look & Feel Config
 	KEY_CONFIG_THEME = 110,
 	// Data Messages
