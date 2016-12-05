@@ -78,25 +78,52 @@ DataFace.WeatherProvider.prototype.fetch = function(params, fn) {
 };
 
 DataFace.squash_summary = function(str) {
-	var s, t;
+	var s, l, n, changed;
 
-	s = str.replace(/[aeiouyg]/ig, '');
-	s = s.replace(/[_:\t\-\.]/ig, ' ').trim();
-	s = s.split(' ', 2);
+	// Width of the display field.
+	n = 4;
 
-	switch(s.length) {
+	// Only operate on a limited number of characters to avoid
+	// problems.
+	s = str.substr(0, 64);
+
+	// Replace common word separators with spaces.
+	s = s.replace(/[_\-]/g, ' ');
+
+	// Normalize words.
+	s = s.replace(/[^a-z ]/ig, '');
+
+	// Reduce the length of the summary as much as possible by
+	// removing the most frequently used vowels in order of
+	// relative frequency of use in English.
+	// 
+	l = '';
+	while (s.length > n && s !== l) {
+		l = s;
+		s = s.replace(/\B[eaoiuy]/i, '');
+	}
+
+	// Replace descenders for readability reasons.
+	// 
+	s = s.replace(/[gjpqy]/g, function(l) {
+		return l.toUpperCase();
+	});
+
+	// Split words and take substrings of words to make a word
+	// that fits into the display width. This is somewhat subjective
+	// and based on my preferences and limited testing.
+	// 
+	s = s.trim().split(' ', 2);
+	switch (s.length) {
 		case 1:
-			s = s[0].substring(0, 4);
+			s = s[0].substring(0, n);
 			break;
 		case 2:
-			s = s[0].substring(0, 3) + s[1].substring(0, 1);
-			break;
-		default:
-			s = '????';
+			s = s[0].substring(0, 1) + s[1].substring(0, n - 1);
 			break;
 	}
 
-	console.log(str + ' -> ' + s);
+	// console.log(str + ' -> ' + s);
 	return s;
 };
 
